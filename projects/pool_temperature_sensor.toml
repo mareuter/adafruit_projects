@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2023 Michael Reuter
+#
+# SPDX-License-Identifier: MIT
+
+settings = "settings_pooltemperature.toml"
+code = "pool_temperature_sensor.py"
+
+[imports]
+local = [
+    "battery_helper",
+    "mqtt_helper",
+    "power_helper"
+]
+adafruit = [
+    "adafruit_ntp",
+    "adafruit_onewire",
+    "adafruit_ds18x20"
+]

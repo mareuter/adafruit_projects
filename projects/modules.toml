@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2023 Michael Reuter
+#
+# SPDX-License-Identifier: MIT
+
+[battery_helper]
+adafruit = [
+    "adafruit_lc709203f",
+    "adafruit_max1704x"
+]
+
+[mqtt_helper]
+adafruit = [
+    "adafruit_minimqtt"
+]
+
+[defaults]
+adafruit = [
+    "adafruit_bus_device",
+    "adafruit_register"
+]
+
+[adafruit]
+module_location = "~/code/adafruit"
+bundle = "adafruit-circuitpython-bundle-8.x-mpy-20231017"
+is_directory = [
+    "adafruit_bus_device",
+    "adafruit_minimqtt",
+    "adafruit_onewire",
+    "adafruit_register"
+]
+
+[circuitpython]
+module_location = "~/code/adafruit"
+bundle = "circuitpython-community-bundle-8.x-mpy-20231017"

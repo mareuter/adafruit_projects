@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2023 Michael Reuter
+#
+# SPDX-License-Identifier: MIT
+
+settings = "settings_temperature.toml"
+code = "temperature_sensor.py"
+
+[imports]
+local = [
+    "battery_helper",
+    "mqtt_helper",
+    "power_helper"
+]
+adafruit = [
+    "adafruit_ntp",
+    "adafruit_sht4x"
+]

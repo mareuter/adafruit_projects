@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2023 Michael Reuter
+#
+# SPDX-License-Identifier: CC0-1.0
+
+settings*.toml
+*.mpy
+
+__pycache__
+
+.ruff_cache
