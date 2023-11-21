@@ -1,8 +1,8 @@
+#!/bin/env/python
+
 # SPDX-FileCopyrightText: 2023 Michael Reuter
 #
 # SPDX-License-Identifier: MIT
-
-#!/bin/env/python
 
 import argparse
 import pathlib
