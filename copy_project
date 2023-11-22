@@ -10,11 +10,8 @@ import shutil
 import tomllib
 
 TOP_DIR = pathlib.Path(".").resolve()
-PROJECT_DIRECTORY = TOP_DIR / "projects"
-MODULES_INFO = PROJECT_DIRECTORY / "modules.toml"
-CIRCUITBOARD_LOCATION = (
-    pathlib.Path("/media") / PROJECT_DIRECTORY.parents[1].name / "CIRCUITPY"
-)
+MODULES_INFO = TOP_DIR / "projects" / "modules.toml"
+CIRCUITBOARD_LOCATION = pathlib.Path("/media") / TOP_DIR.parents[2].name / "CIRCUITPY"
 # CIRCUITBOARD_LOCATION = pathlib.Path("~/temp/CIRCUITPY").expanduser()
 CIRCUITBOARD_LIB = CIRCUITBOARD_LOCATION / "lib"
 MPY_EXT = ".mpy"
