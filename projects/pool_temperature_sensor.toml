@@ -9,10 +9,10 @@ code = "pool_temperature_sensor.py"
 local = [
     "battery_helper",
     "mqtt_helper",
-    "power_helper"
+    "power_helper",
+    "wifi_helper"
 ]
 adafruit = [
-    "adafruit_ntp",
     "adafruit_onewire",
     "adafruit_ds18x20"
 ]
