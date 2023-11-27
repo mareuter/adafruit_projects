@@ -13,6 +13,11 @@ adafruit = [
     "adafruit_minimqtt"
 ]
 
+[wifi_helper]
+adafruit = [
+    "adafruit_ntp"
+]
+
 [defaults]
 adafruit = [
     "adafruit_bus_device",
