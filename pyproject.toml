@@ -5,7 +5,6 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "project_helper"
 version = "1.0.0"
-requires_python = ">= 3.8"
 authors = [
     {name = "Michael Reuter", email = "mareuternh@gmail.com"}
 ]
@@ -18,7 +17,7 @@ classifiers = [
     "Programming Language :: CircuitPython"
 ]
 dependencies = [
-    "adafruit-blinka",
+    "adafruit-blinka>=8,<9",
     "adafruit-blinka-displayio",
     "adafruit-circuitpython-bitmap-font",
     "adafruit-circuitpython-busdevice",
@@ -33,5 +32,7 @@ dependencies = [
     "adafruit-circuitpython-sht4x",
     "adafruit-circuitpython-typing",
     "adafruit-circuitpython-veml7700",
-    "micropython"
 ]
+
+[project.scripts]
+convert_font = "project_helper.convert_font:runner"
