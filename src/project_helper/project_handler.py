@@ -27,6 +27,7 @@ class ProjectHandler:
             Directory used for testing project installation, by default None
         """
         self.top_dir = pathlib.Path(".").resolve()
+        self.local_modules = self.top_dir / "modules"
         self.modules_info = self.top_dir / "projects" / "modules.toml"
         if debug_dir is not None:
             self.circuitboard_location = debug_dir / CIRCUITPY_DIR
@@ -119,7 +120,9 @@ class ProjectHandler:
 
         local_imports = self.project_info["imports"]["local"]
         for local_import in local_imports:
-            shutil.copy(local_import + MPY_EXT, self.circuitboard_lib)
+            shutil.copy(
+                self.local_modules / (local_import + MPY_EXT), self.circuitboard_lib
+            )
             self._copy_file_or_directory(local_import, "adafruit")
 
         self._copy_file_or_directory("imports", "adafruit", use_project_info=True)
