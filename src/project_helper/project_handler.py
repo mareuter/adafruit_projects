@@ -111,10 +111,15 @@ class ProjectHandler:
         with self.project_file.expanduser().open("rb") as ifile:
             self.project_info = tomllib.load(ifile)
 
+        project_dir = self.project_file.parent
         shutil.copy(
-            self.project_info["settings"], self.circuitboard_location / SETTINGS_FILE
+            project_dir / self.project_info["settings"],
+            self.circuitboard_location / SETTINGS_FILE,
         )
-        shutil.copy(self.project_info["code"], self.circuitboard_location / CODE_FILE)
+        shutil.copy(
+            project_dir / self.project_info["code"],
+            self.circuitboard_location / CODE_FILE,
+        )
 
         self._copy_file_or_directory("defaults", "adafruit")
 
