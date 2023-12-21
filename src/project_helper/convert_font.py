@@ -1,5 +1,3 @@
-#!/bin/env/python
-
 # SPDX-FileCopyrightText: 2023 Michael Reuter
 #
 # SPDX-License-Identifier: MIT
@@ -7,6 +5,8 @@
 import argparse
 import pathlib
 import subprocess
+
+__all__ = ["runner"]
 
 
 def main(opts: argparse.Namespace) -> None:
@@ -25,7 +25,7 @@ def main(opts: argparse.Namespace) -> None:
     subprocess.run(cmd)
 
 
-if __name__ == "__main__":
+def runner() -> None:
     parser = argparse.ArgumentParser()
 
     parser.add_argument("size", type=int, help="Font size to create.")

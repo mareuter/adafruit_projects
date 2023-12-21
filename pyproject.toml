@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "project_helper"
+version = "1.0.0"
+authors = [
+    {name = "Michael Reuter", email = "mareuternh@gmail.com"}
+]
+description = "Adafruit project stuff."
+readme = "README.md"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: CircuitPython"
+]
+dependencies = [
+    "adafruit-blinka>=8,<9",
+    "adafruit-blinka-displayio",
+    "adafruit-circuitpython-bitmap-font",
+    "adafruit-circuitpython-busdevice",
+    "adafruit-circuitpython-display-text",
+    "adafruit-circuitpython-ds18x20",
+    "adafruit-circuitpython-lc709203f",
+    "adafruit-circuitpython-max1704x",
+    "adafruit-circuitpython-minimqtt",
+    "adafruit-circuitpython-ntp",
+    "adafruit-circuitpython-onewire",
+    "adafruit-circuitpython-register",
+    "adafruit-circuitpython-requests",
+    "adafruit-circuitpython-sht4x",
+    "adafruit-circuitpython-typing",
+    "adafruit-circuitpython-veml7700",
+]
+
+[project.scripts]
+clean_debug_dir = "project_helper.clean_debug_dir:runner"
+convert_font = "project_helper.convert_font:runner"
+copy_project = "project_helper.copy_project:runner"

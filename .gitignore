@@ -8,3 +8,10 @@ settings*.toml
 __pycache__
 
 .ruff_cache
+
+*.egg-info
+
+fonts
+
+.vscode
+.env
