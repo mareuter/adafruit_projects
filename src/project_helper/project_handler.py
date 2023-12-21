@@ -84,6 +84,19 @@ class ProjectHandler:
         except KeyError:
             pass
 
+    def _copy_media(self) -> None:
+        """Copy media items to project location."""
+        media_types = ["fonts", "images"]
+        try:
+            for media_type in media_types:
+                media_dir = self.circuitboard_location / media_type
+                media_dir.mkdir(0o755, exist_ok=True)
+                input_media_dir = self.top_dir / media_type
+                for media in self.project_info["media"][media_type]:
+                    shutil.copy(input_media_dir / media, media_dir)
+        except KeyError:
+            pass
+
     def _get_module_location(self, name: str) -> pathlib.Path:
         """Construct the path for adafruit or circuitpython library bundles.
 
@@ -131,3 +144,5 @@ class ProjectHandler:
             self._copy_file_or_directory(local_import, "adafruit")
 
         self._copy_file_or_directory("imports", "adafruit", use_project_info=True)
+
+        self._copy_media()
