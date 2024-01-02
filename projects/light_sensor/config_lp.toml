@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2023-2024 Michael Reuter
+#
+# SPDX-License-Identifier: MIT
+
+settings = "settings_lightboard.toml"
+code = "light_sensor_lp.py"
+
+[imports]
+local = [
+    "battery_helper",
+    "mqtt_helper",
+    "power_helper",
+    "wifi_helper",
+    "adafruit_veml7700"
+]

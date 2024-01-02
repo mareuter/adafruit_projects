@@ -10,7 +10,12 @@ __all__ = ["runner"]
 
 
 def main(opts: argparse.ArgumentParser) -> None:
-    ph = ProjectHandler(opts.project_file, opts.debug_dir.expanduser())
+    if opts.debug_dir is None:
+        debug_dir = opts.debug_dir
+    else:
+        debug_dir = opts.debug_dir.expanduser()
+
+    ph = ProjectHandler(opts.project_file, debug_dir)
     ph.copy_project()
 
 
