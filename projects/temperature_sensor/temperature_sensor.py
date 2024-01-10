@@ -21,7 +21,7 @@ relative_humidity = None
 
 pool = wifi_helper.setup_wifi_and_rtc(start_delay=True)
 
-if pool is None:
+if pool is not None:
     # power_helper.i2c_power(True)
     power_helper.neopixel_power(False)
 
