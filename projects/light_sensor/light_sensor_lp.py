@@ -24,7 +24,7 @@ integration_time = None
 
 pool = wifi_helper.setup_wifi_and_rtc(start_delay=True)
 
-if pool is None:
+if pool is not None:
     power_helper.neopixel_power(False)
 
     time.sleep(5)
