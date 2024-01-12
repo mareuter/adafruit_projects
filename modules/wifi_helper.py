@@ -32,7 +32,7 @@ def setup_wifi_and_rtc(
     if start_delay:
         time.sleep(5)
 
-    retries = 10
+    retries = 5
     pool: socketpool.SocketPool | None = None
     while retries > 0:
         try:
@@ -42,6 +42,7 @@ def setup_wifi_and_rtc(
             break
         except Exception:
             print("Cannot connect to wifi.")
+            pool = None
             retries -= 1
             if not retries:
                 break
