@@ -81,14 +81,19 @@ class MqttHelper:
         self.client.on_disconnect = on_disconnect
 
         print("Connecting to MQTT broker")
-        self.client.connect(keep_alive=self.connection_timeout)
-
         try:
-            self.client.loop()
-        except (ValueError, RuntimeError) as e:
-            print("Failed to get data, retrying\n", e)
-            wifi.reset()
-            self.client.reconnect()
+            self.client.connect(keep_alive=self.connection_timeout)
+
+            try:
+                self.client.loop()
+            except (ValueError, RuntimeError) as e:
+                print("Failed to get data, retrying\n", e)
+                wifi.reset()
+                self.client.reconnect()
+
+        except MQTT.MMQTTException as e:
+            print("Connection failed: \n", e)
+            self.client = None
 
     def mark_time(self) -> None:
         """Set the timestamp."""
