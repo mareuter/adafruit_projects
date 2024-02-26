@@ -2,8 +2,14 @@
 #
 # SPDX-License-Identifier: MIT
 
-settings = "settings_lightboard.toml"
 code = "light_sensor.py"
+
+[settings]
+general = [
+    "wifi",
+    "mqtt"
+]
+local = "settings_lamptimer.toml"
 
 [imports]
 local = [

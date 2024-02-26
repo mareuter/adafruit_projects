@@ -66,14 +66,14 @@ while True:
 
     text_area.text = "\n".join(text)
 
-    battery_measurements_and_tags = ["testbattery"]
+    battery_measurements_and_tags = [os.getenv("MQTT_BATTERY_MEASUREMENT")]
     battery_fields = Fields(
         percent=battery_percent,
         voltage=battery_voltage,
         temperature=battery_temperature,
     )
 
-    light_measurements_and_tags = ["testlight"]
+    light_measurements_and_tags = [os.getenv("MQTT_LIGHT_MEASUREMENT")]
     light_fields = Fields(
         light=light,
         lux=lux,
