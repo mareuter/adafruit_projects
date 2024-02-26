@@ -4,7 +4,7 @@
 import argparse
 import pathlib
 
-from .project_handler import ProjectHandler
+from .project_handler import MqttInformation, ProjectHandler
 
 __all__ = ["runner"]
 
@@ -15,7 +15,11 @@ def main(opts: argparse.ArgumentParser) -> None:
     else:
         debug_dir = opts.debug_dir.expanduser()
 
-    ph = ProjectHandler(opts.project_file, debug_dir)
+    mqtt_info = MqttInformation(
+        no_test=opts.mqtt_no_test, sensor_name=opts.mqtt_sensor_name
+    )
+
+    ph = ProjectHandler(opts.project_file, mqtt_info, debug_dir)
     ph.copy_project()
 
 
@@ -30,5 +34,20 @@ def runner() -> None:
         help="Alternate directory to test project installation.",
     )
 
+    parser.add_argument(
+        "--mqtt-no-test",
+        action="store_true",
+        help="Remove test prefixes to MQTT measurements",
+    )
+
+    parser.add_argument("--mqtt-sensor-name", help="Set a MQTT sensor name.")
+
     args = parser.parse_args()
+
+    if args.mqtt_no_test and args.mqtt_sensor_name is None:
+        parser.error("mqtt-sensor-name must be set if using mqtt-no-test")
+
+    if args.mqtt_sensor_name is not None and not args.mqtt_no_test:
+        parser.error("mqtt-no-test must be set if using mqtt-sensor-name")
+
     main(args)

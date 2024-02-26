@@ -2,8 +2,13 @@
 #
 # SPDX-License-Identifier: MIT
 
-settings = "settings_pooltemperature.toml"
 code = "pool_temperature_sensor.py"
+
+[settings]
+general = [
+    "wifi",
+    "mqtt"
+]
 
 [imports]
 local = [

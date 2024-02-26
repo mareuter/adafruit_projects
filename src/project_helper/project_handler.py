@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2023 Michael Reuter
 #
 # SPDX-License-Identifier: MIT
+import dataclasses
+import os
 import pathlib
 import shutil
 import tomllib
@@ -13,9 +15,20 @@ CODE_FILE = "code.py"
 SETTINGS_FILE = "settings.toml"
 
 
+@dataclasses.dataclass
+class MqttInformation:
+    """MQTT Information"""
+
+    no_test: bool
+    sensor_name: str | None
+
+
 class ProjectHandler:
     def __init__(
-        self, project_file: pathlib.Path, debug_dir: pathlib.Path | None = None
+        self,
+        project_file: pathlib.Path,
+        mqtt_info: MqttInformation,
+        debug_dir: pathlib.Path | None = None,
     ):
         """Class constructor.
 
@@ -37,6 +50,7 @@ class ProjectHandler:
             )
         self.circuitboard_lib = self.circuitboard_location / "lib"
         self.project_file = project_file
+        self.mqtt_info = mqtt_info
 
     def _check_project_file(self) -> None:
         """Check to see if the project file is set.
@@ -97,6 +111,35 @@ class ProjectHandler:
         except KeyError:
             pass
 
+    def _create_settings_file(self) -> pathlib.Path:
+        """Create settings file.
+
+        Returns
+        -------
+        pathlib.Path
+            The temporary settings file.
+        """
+        temp_file = self.top_dir / "settings_tmp.toml"
+        settings_dict = {}
+        for setting in self.project_info["settings"]["general"]:
+            sfile_name = self.top_dir / f"settings_{setting}.toml"
+            with sfile_name.open("rb") as sifile:
+                sdict = tomllib.load(sifile)
+                settings_dict.update(sdict)
+
+        if self.mqtt_info.no_test:
+            settings_dict["MQTT_SENSOR_NAME"] = self.mqtt_info.sensor_name
+            for key, value in settings_dict.items():
+                if "MEASUREMENT" in key:
+                    settings_dict[key] = value.split("test")[-1]
+
+        with temp_file.open("w") as sofile:
+            for key, value in settings_dict.items():
+                line = f'{key}="{value}"' + os.linesep
+                sofile.write(line)
+
+        return temp_file
+
     def _get_module_location(self, name: str) -> pathlib.Path:
         """Construct the path for adafruit or circuitpython library bundles.
 
@@ -124,11 +167,14 @@ class ProjectHandler:
         with self.project_file.expanduser().open("rb") as ifile:
             self.project_info = tomllib.load(ifile)
 
-        project_dir = self.project_file.parent
+        temp_settings_file = self._create_settings_file()
         shutil.copy(
-            project_dir / self.project_info["settings"],
+            temp_settings_file,
             self.circuitboard_location / SETTINGS_FILE,
         )
+        temp_settings_file.unlink()
+
+        project_dir = self.project_file.parent
         shutil.copy(
             project_dir / self.project_info["code"],
             self.circuitboard_location / CODE_FILE,
