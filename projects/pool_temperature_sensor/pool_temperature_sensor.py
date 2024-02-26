@@ -4,6 +4,7 @@
 
 import adafruit_ds18x20
 from adafruit_onewire.bus import OneWireBus
+import adafruit_sht4x
 import alarm
 import board
 import os
@@ -17,7 +18,9 @@ import wifi_helper
 ALARM_TIME = 5 * 60  # seconds
 
 # Defaults for values
+water_temperature = None
 temperature = None
+relative_humidity = None
 
 pool = wifi_helper.setup_wifi_and_rtc(start_delay=True)
 
@@ -33,24 +36,28 @@ if pool is not None:
 
     i2c = board.STEMMA_I2C()
     battery_monitor = BatteryHelper(i2c)
+    temperature_sensor = adafruit_sht4x.SHT4x(i2c)
 
     writer = MqttHelper(os.getenv("MQTT_SENSOR_NAME"), pool, 120)
 
     writer.mark_time()
 
     battery_percent, battery_voltage, battery_temperature = battery_monitor.measure()
-    temperature = ds18b20.temperature
+    temperature, relative_humidity = temperature_sensor.measurements
+    water_temperature = ds18b20.temperature
 
-    battery_measurements_and_tags = ["testbattery"]
+    battery_measurements_and_tags = [os.getenv("MQTT_BATTERY_MEASUREMENT")]
     battery_fields = Fields(
         percent=battery_percent,
         voltage=battery_voltage,
         temperature=battery_temperature,
     )
 
-    environment_measurements_and_tags = ["testenvironment"]
+    environment_measurements_and_tags = [os.getenv("MQTT_ENVIRONMENT_MEASUREMENT")]
     environment_fields = Fields(
         temperature=temperature,
+        relative_humidity=relative_humidity,
+        water_temperature=water_temperature,
     )
 
     writer.publish(battery_measurements_and_tags, battery_fields)
