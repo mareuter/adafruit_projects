@@ -18,6 +18,7 @@ local = [
     "wifi_helper"
 ]
 adafruit = [
+    "adafruit_sht4x",
     "adafruit_onewire",
     "adafruit_ds18x20"
 ]
