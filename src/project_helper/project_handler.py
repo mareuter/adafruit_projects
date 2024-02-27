@@ -135,8 +135,10 @@ class ProjectHandler:
                 ldict = tomllib.load(slifile)
                 settings_dict.update(ldict)
 
-        if self.mqtt_info.no_test:
+        if self.mqtt_info.sensor_name is not None:
             settings_dict["MQTT_SENSOR_NAME"] = self.mqtt_info.sensor_name
+
+        if self.mqtt_info.no_test:
             for key, value in settings_dict.items():
                 if "MEASUREMENT" in key:
                     settings_dict[key] = value.split("test")[-1]
