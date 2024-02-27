@@ -39,3 +39,4 @@ dependencies = [
 clean_debug_dir = "project_helper.clean_debug_dir:runner"
 convert_font = "project_helper.convert_font:runner"
 copy_project = "project_helper.copy_project:runner"
+get_board_uid = "project_helper.get_board_uid:runner"
