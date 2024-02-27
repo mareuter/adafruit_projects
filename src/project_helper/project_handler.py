@@ -127,6 +127,14 @@ class ProjectHandler:
                 sdict = tomllib.load(sifile)
                 settings_dict.update(sdict)
 
+        if "local" in self.project_info["settings"]:
+            local_settings = (
+                self.project_file.parent / self.project_info["settings"]["local"]
+            )
+            with local_settings.open("rb") as slifile:
+                ldict = tomllib.load(slifile)
+                settings_dict.update(ldict)
+
         if self.mqtt_info.no_test:
             settings_dict["MQTT_SENSOR_NAME"] = self.mqtt_info.sensor_name
             for key, value in settings_dict.items():

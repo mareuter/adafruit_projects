@@ -9,6 +9,7 @@ general = [
     "wifi",
     "mqtt"
 ]
+local = "settings_lamptimer.toml"
 
 [imports]
 local = [
