@@ -47,7 +47,4 @@ def runner() -> None:
     if args.mqtt_no_test and args.mqtt_sensor_name is None:
         parser.error("mqtt-sensor-name must be set if using mqtt-no-test")
 
-    if args.mqtt_sensor_name is not None and not args.mqtt_no_test:
-        parser.error("mqtt-no-test must be set if using mqtt-sensor-name")
-
     main(args)
