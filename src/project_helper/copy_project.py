@@ -1,9 +1,10 @@
-# SPDX-FileCopyrightText: 2023 Michael Reuter
+# SPDX-FileCopyrightText: 2023-2024 Michael Reuter
 #
 # SPDX-License-Identifier: MIT
 import argparse
 import pathlib
 
+from .common_parser import make_parser
 from .project_handler import MqttInformation, ProjectHandler
 
 __all__ = ["runner"]
@@ -24,15 +25,9 @@ def main(opts: argparse.ArgumentParser) -> None:
 
 
 def runner() -> None:
-    parser = argparse.ArgumentParser()
+    parser = make_parser()
 
     parser.add_argument("project_file", type=pathlib.Path, help="Project file.")
-
-    parser.add_argument(
-        "--debug-dir",
-        type=pathlib.Path,
-        help="Alternate directory to test project installation.",
-    )
 
     parser.add_argument(
         "--mqtt-no-test",

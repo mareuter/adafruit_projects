@@ -5,6 +5,7 @@ import dataclasses
 import os
 import pathlib
 import shutil
+import sys
 import tomllib
 
 __all__ = ["ProjectHandler"]
@@ -13,6 +14,10 @@ CIRCUITPY_DIR = "CIRCUITPY"
 MPY_EXT = ".mpy"
 CODE_FILE = "code.py"
 SETTINGS_FILE = "settings.toml"
+BOOT_PY = "boot.py"
+TEMP_SETTINGS = "settings_temp.toml"
+WEB_DEV_SETTINGS = "settings_circuitpy_web.toml"
+BOOT_OUT_FILE = "boot_out.txt"
 
 
 @dataclasses.dataclass
@@ -26,8 +31,8 @@ class MqttInformation:
 class ProjectHandler:
     def __init__(
         self,
-        project_file: pathlib.Path,
-        mqtt_info: MqttInformation,
+        project_file: pathlib.Path | None = None,
+        mqtt_info: MqttInformation | None = None,
         debug_dir: pathlib.Path | None = None,
     ):
         """Class constructor.
@@ -167,6 +172,11 @@ class ProjectHandler:
         top_loc = pathlib.Path(dep_type["module_location"]).expanduser()
         return top_loc / dep_type["bundle"] / "lib"
 
+    def clean_debug_dir(self) -> None:
+        """Clean the debug directory for project testing."""
+        shutil.rmtree(self.circuitboard_location, ignore_errors=True)
+        self.circuitboard_lib.mkdir(0o755, parents=True)
+
     def copy_project(self) -> None:
         """Copy project based on TOML configuration."""
         self._check_project_file()
@@ -202,3 +212,56 @@ class ProjectHandler:
         self._copy_file_or_directory("imports", "adafruit", use_project_info=True)
 
         self._copy_media()
+
+    def get_board_uid(self) -> None:
+        """Get the circuitboard's UID."""
+        boot_file = self.circuitboard_location / BOOT_OUT_FILE
+        lines = boot_file.read_text().strip()
+        for line in lines.split(os.linesep):
+            if line.startswith("UID"):
+                print(f"Board {line}")
+
+    def web_development(self, undo: bool) -> None:
+        """Setup a board for web development mode.
+
+        Parameters
+        ----------
+        undo : bool
+            Provide information for undoing web development mode.
+        """
+        boot_file = self.circuitboard_location / BOOT_PY
+        if boot_file.exists():
+            print("Circuitboard already setup for web developement.")
+            sys.exit(0)
+
+        if undo:
+            print("import storage")
+            print("import os")
+            print("storage.remount('/', False)")
+            print("os.remove('/boot.py')")
+        else:
+            settings_file = self.circuitboard_location / SETTINGS_FILE
+            settings_temp = self.top_dir / TEMP_SETTINGS
+            shutil.copy(settings_file, settings_temp)
+
+            with settings_temp.open("rb") as itsfile:
+                settings_dict = tomllib.load(itsfile)
+
+            settings_temp.unlink()
+
+            settings_web_dev = self.top_dir / WEB_DEV_SETTINGS
+            with settings_web_dev.open("rb") as iwdfile:
+                wddict = tomllib.load(iwdfile)
+                settings_dict.update(wddict)
+
+            with settings_temp.open("w") as sofile:
+                for key, value in settings_dict.items():
+                    line = f'{key}="{value}"' + os.linesep
+                    sofile.write(line)
+
+            with boot_file.open("w") as bofile:
+                bofile.write("import storage")
+                bofile.write("storage.disable_usb_drive()")
+
+            shutil.copy(settings_temp, self.circuitboard_location)
+            shutil.copy(boot_file, self.circuitboard_location)
