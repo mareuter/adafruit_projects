@@ -22,7 +22,7 @@ water_temperature = None
 temperature = None
 relative_humidity = None
 
-pool = wifi_helper.setup_wifi_and_rtc(start_delay=True)
+pool = wifi_helper.setup_wifi_and_rtc(start_delay=True, num_retries=1)
 
 if pool is not None:
     # power_helper.i2c_power(True)
