@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-code = "light_sensor.py"
+code = "lamp_timer.py"
 
 [settings]
 general = [
