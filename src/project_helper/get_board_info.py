@@ -8,7 +8,7 @@ __all__ = ["runner"]
 
 def main() -> None:
     ph = ProjectHandler()
-    ph.get_board_uid()
+    ph.get_board_info()
 
 
 def runner() -> None:

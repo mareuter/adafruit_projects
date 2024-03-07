@@ -213,13 +213,16 @@ class ProjectHandler:
 
         self._copy_media()
 
-    def get_board_uid(self) -> None:
-        """Get the circuitboard's UID."""
+    def get_board_info(self) -> None:
+        """Get the circuitboard's UID and CircuitPython version."""
         boot_file = self.circuitboard_location / BOOT_OUT_FILE
         lines = boot_file.read_text().strip()
         for line in lines.split(os.linesep):
+            if line.startswith("Adafruit"):
+                parts = line.split()
+                print(f"{' '.join(parts[:3])}")
             if line.startswith("UID"):
-                print(f"Board {line}")
+                print(line)
 
     def web_development(self, undo: bool) -> None:
         """Setup a board for web development mode.
