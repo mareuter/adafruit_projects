@@ -21,6 +21,7 @@ dependencies = [
     "adafruit-blinka-displayio",
     "adafruit-circuitpython-bitmap-font",
     "adafruit-circuitpython-busdevice",
+    "adafruit-circuitpython-datetime",
     "adafruit-circuitpython-display-text",
     "adafruit-circuitpython-ds18x20",
     "adafruit-circuitpython-lc709203f",

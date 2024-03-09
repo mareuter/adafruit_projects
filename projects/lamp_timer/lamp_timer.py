@@ -1,20 +1,31 @@
-# SPDX-FileCopyrightText: 2023 Michael Reuter
+# SPDX-FileCopyrightText: 2023-2024 Michael Reuter
 #
 # SPDX-License-Identifier: MIT
 
+from adafruit_datetime import datetime, time, timedelta, timezone
+import adafruit_requests
 import asyncio
-from datetime import datetime, time, timedelta
+import json
 import os
 import random
-import requests
-from zoneinfo import ZoneInfo
+import ssl
 
-TIME_ZONE = ZoneInfo(os.getenv("LOCATION_TIMEZONE"))
-CHECK_TIME = time(0, 10, 0, tzinfo=TIME_ZONE)
+import wifi_helper
+
+
+pool = wifi_helper.setup_wifi_and_rtc(start_delay=True)
+ssl_default_context = ssl.create_default_context()
+requests = adafruit_requests.Session(pool, ssl_default_context)
+
+
+TIME_ZONE_NAME = os.getenv("LOCATION_TIMEZONE_NAME")
+TIME_ZONE_OFFSET = timedelta(hours=int(os.getenv("LOCATION_TIMEZONE_OFFSET")))
+TIME_ZONE = timezone(offset=TIME_ZONE_OFFSET, name=TIME_ZONE_NAME)
+CHECK_TIME = time(0, 10, 0)
 ONE_DAY = timedelta(days=1)
 FIVE_MINUTES = timedelta(seconds=300)
 TEN_MINUTES = timedelta(seconds=600)
-LAMP_OFF_TIME = time.fromisoformat(os.getenv["LAMP_OFF_TIME"])
+LAMP_OFF_TIME = time.fromisoformat(os.getenv("LAMP_OFF_TIME"))
 LOCATION_LONGITUDE = os.getenv("LOCATION_LONGITUDE")
 LOCATION_LATITUDE = os.getenv("LOCATION_LATITUDE")
 LOCATION_HEIGHT = os.getenv("LOCATION_HEIGHT")
@@ -30,11 +41,12 @@ class TimerCondition:
 
 
 def get_current_time() -> datetime:
-    return datetime.now(tz=TIME_ZONE)
+    return datetime.now() + TIME_ZONE_OFFSET
 
 
 def get_seconds_from_now(dt: datetime) -> int:
-    return (dt - get_current_time()).total_seconds()
+    now = get_current_time()
+    return (dt - now).total_seconds()
 
 
 def get_on_variation_from_range() -> timedelta:
@@ -54,21 +66,28 @@ async def time_setter(tc):
         print(current_time)
         print("Setting up conditions")
 
-        payload = {
-            "cdatetime": current_time.timestamp(),
-            "tz": TIME_ZONE.key,
-            "lat": LOCATION_LATITUDE,
-            "lon": LOCATION_LONGITUDE,
-        }
+        url = [
+            HELIOS_WEBSERVICE,
+            "?",
+            f"cdatetime={int(current_time.timestamp())}",
+            "&",
+            f"tz={TIME_ZONE_NAME}",
+            "&",
+            f"lat={LOCATION_LATITUDE}",
+            "&",
+            f"lon={LOCATION_LONGITUDE}",
+        ]
 
-        response = requests.get(HELIOS_WEBSERVICE, params=payload)
+        response = requests.get("".join(url))
+        info = json.loads(response.content.decode())
 
         tc.lamp_on_time = (
-            datetime.fromtimestamp(float(response.json()["sunset"]), TIME_ZONE)
+            datetime.fromtimestamp(float(info["sunset"]))
+            + TIME_ZONE_OFFSET
             + get_on_variation_from_range()
         )
         tc.lamp_off_time = (
-            datetime.combine(current_date, LAMP_OFF_TIME, tzinfo=TIME_ZONE)
+            datetime.combine(current_date, LAMP_OFF_TIME)
             + get_off_variation_from_range()
         )
         tc.initialized = True
@@ -99,6 +118,7 @@ async def lamp_control(tc):
 
 
 async def main():
+    print("Setup")
     tc = TimerCondition()
     await asyncio.gather(time_setter(tc), lamp_control(tc))
 

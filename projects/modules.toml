@@ -18,6 +18,11 @@ adafruit = [
     "adafruit_ntp"
 ]
 
+[asyncio]
+adafruit = [
+    "adafruit_ticks"
+]
+
 [defaults]
 adafruit = [
     "adafruit_bus_device",
@@ -31,7 +36,8 @@ is_directory = [
     "adafruit_bus_device",
     "adafruit_minimqtt",
     "adafruit_onewire",
-    "adafruit_register"
+    "adafruit_register",
+    "asyncio",
 ]
 
 [circuitpython]

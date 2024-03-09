@@ -15,8 +15,13 @@ local = "settings_lamptimer.toml"
 local = [
     "battery_helper",
     "mqtt_helper",
+    "wifi_helper",
     "adafruit_veml7700"
 ]
 adafruit = [
+    "adafruit_datetime",
     "adafruit_ntp",
+    "adafruit_requests",
+    "adafruit_ticks",
+    "asyncio",
 ]
