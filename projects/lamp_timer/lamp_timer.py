@@ -9,6 +9,7 @@ import adafruit_requests
 import adafruit_veml7700
 import asyncio
 import board
+from digitalio import DigitalInOut, Direction, Pull
 import displayio
 import json
 import os
@@ -36,15 +37,27 @@ veml7700.light_integration_time = veml7700.ALS_100MS
 
 # Setup display area
 DISPLAY_FONT = bitmap_font.load_font("fonts/SpartanMB-Regular-12.bdf")
+COLORMAP_LIST = [0xFFFFFF, 0xFFFFFF, 0xF0E442, 0x0072B2]
 main_display = board.DISPLAY
 label_height = main_display.height // 4
 main_group = displayio.Group()
 for i in range(4):
-    label = bitmap_label.Label(DISPLAY_FONT)
+    label = bitmap_label.Label(DISPLAY_FONT, color=COLORMAP_LIST[i])
     label.anchor_point = (0, 0)
     label.anchored_position = (0, i * label_height)
     main_group.append(label)
 main_display.root_group = main_group
+
+# Setup power relay control
+power_relay_pin = DigitalInOut(board.D5)
+power_relay_pin.direction = Direction.OUTPUT
+power_relay_pin.pull = Pull.DOWN
+
+# Setup buttons
+display_on_btn = DigitalInOut(board.D2)
+display_on_btn.direction = Direction.INPUT
+display_off_btn = DigitalInOut(board.D1)
+display_off_btn = Direction.INPUT
 
 
 TIME_ZONE_NAME = os.getenv("LOCATION_TIMEZONE_NAME")
@@ -124,8 +137,8 @@ async def time_setter(tc: TimerCondition) -> None:
             + get_off_variation_from_range()
         )
         tc.initialized = True
-        main_group[2].text = f"Lamp On: {str(tc.lamp_on_time).split()[-1]}"
-        main_group[3].text = f"Lamp Off: {str(tc.lamp_off_time).split()[-1]}"
+        main_group[2].text = f"On: {str(tc.lamp_on_time).split()[-1]}"
+        main_group[3].text = f"Off: {str(tc.lamp_off_time).split()[-1]}"
 
         tc.next_check_time = datetime.combine(current_date, CHECK_TIME) + ONE_DAY
         current_delta = get_seconds_from_now(tc.next_check_time)
@@ -145,11 +158,13 @@ async def lamp_control(tc: TimerCondition) -> None:
         print(f"Turning on lamp at {get_current_time()}")
         current_delta = get_seconds_from_now(tc.lamp_off_time)
         # GPIO on
+        # power_relay_pin.value = True
         print(f"Lamp off time in {current_delta} seconds")
         await asyncio.sleep(current_delta)
         print(f"Turning off lamp at {get_current_time()}")
         current_delta = get_seconds_from_now(tc.next_check_time) + 10
         # GPIO off
+        # power_relay_pin.value = False
         print(f"Next lamp control check in {current_delta} seconds")
         await asyncio.sleep(current_delta)
 
@@ -167,7 +182,7 @@ async def measure_light() -> None:
             gain = veml7700.gain_value()
             integration_time = veml7700.integration_time_value()
 
-            main_group[1].text = f"Lux: {autolux}"
+            main_group[1].text = f"Lux: {autolux:.2f}"
 
             light_measurements_and_tags = [os.getenv("MQTT_LIGHT_MEASUREMENT")]
             light_fields = Fields(
@@ -193,11 +208,24 @@ async def display_information() -> None:
         await asyncio.sleep(60)
 
 
+async def monitor_buttons() -> None:
+    while True:
+        if display_off_btn.value:
+            main_display.root_group = None
+        if display_on_btn.value:
+            main_display.root_group = main_group
+        await asyncio.sleep(1)
+
+
 async def main():
     print("Setup")
     tc = TimerCondition()
     await asyncio.gather(
-        display_information(), time_setter(tc), lamp_control(tc), measure_light()
+        display_information(),
+        monitor_buttons(),
+        measure_light(),
+        time_setter(tc),
+        lamp_control(tc),
     )
 
 
