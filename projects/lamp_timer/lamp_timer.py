@@ -9,7 +9,7 @@ import adafruit_requests
 import adafruit_veml7700
 import asyncio
 import board
-from digitalio import DigitalInOut, Direction, Pull
+from digitalio import DigitalInOut, Direction
 import displayio
 import json
 import os
@@ -37,28 +37,74 @@ veml7700.light_integration_time = veml7700.ALS_100MS
 
 # Setup display area
 DISPLAY_FONT = bitmap_font.load_font("fonts/SpartanMB-Regular-12.bdf")
-COLORMAP_LIST = [0xFFFFFF, 0xFFFFFF, 0xF0E442, 0x0072B2]
+TEXT_COLOR = 0xFFFFFF
+LIGHT_COLOR = 0xF0E442
+DARK_COLOR = 0x0072B2
+OFF_CIRCLE_BMP = displayio.OnDiskBitmap("images/Off_Circle.bmp")
+ON_CIRCLE_BMP = displayio.OnDiskBitmap("images/On_Circle.bmp")
+SUNRISE_BMP = displayio.OnDiskBitmap("images/Sunrise.bmp")
+SUNSET_BMP = displayio.OnDiskBitmap("images/Sunset.bmp")
 main_display = board.DISPLAY
-label_height = main_display.height // 4
+half_label_width = main_display.width // 2
+label_height = 33
+time_label_width = 87
 main_group = displayio.Group()
-for i in range(4):
-    label = bitmap_label.Label(DISPLAY_FONT, color=COLORMAP_LIST[i])
-    label.anchor_point = (0, 0)
-    label.anchored_position = (0, i * label_height)
-    main_group.append(label)
+datetime_label = bitmap_label.Label(DISPLAY_FONT, color=TEXT_COLOR)
+datetime_label.anchor_point = (0, 0)
+datetime_label.anchored_position = (0, 2)
+white_label = bitmap_label.Label(DISPLAY_FONT, color=TEXT_COLOR)
+white_label.anchor_point = (0, 0)
+white_label.anchored_position = (0, 35)
+lux_label = bitmap_label.Label(DISPLAY_FONT, color=TEXT_COLOR)
+lux_label.anchor_point = (0, 0)
+lux_label.anchored_position = (half_label_width, 35)
+sunrise_img = displayio.TileGrid(
+    SUNRISE_BMP, pixel_shader=SUNRISE_BMP.pixel_shader, x=0, y=68
+)
+sunrise_time_label = bitmap_label.Label(DISPLAY_FONT, color=LIGHT_COLOR)
+sunrise_time_label.anchor_point = (0, 0)
+sunrise_time_label.anchored_position = (33, 68)
+sunset_img = displayio.TileGrid(
+    SUNSET_BMP, pixel_shader=SUNSET_BMP.pixel_shader, x=120, y=68
+)
+sunset_time_label = bitmap_label.Label(DISPLAY_FONT, color=DARK_COLOR)
+sunset_time_label.anchor_point = (0, 0)
+sunset_time_label.anchored_position = (153, 68)
+on_circle_img = displayio.TileGrid(
+    ON_CIRCLE_BMP, pixel_shader=ON_CIRCLE_BMP.pixel_shader, x=0, y=101
+)
+on_time_label = bitmap_label.Label(DISPLAY_FONT, color=LIGHT_COLOR)
+on_time_label.anchor_point = (0, 0)
+on_time_label.anchored_position = (33, 101)
+off_circle_img = displayio.TileGrid(
+    OFF_CIRCLE_BMP, pixel_shader=OFF_CIRCLE_BMP.pixel_shader, x=120, y=101
+)
+off_time_label = bitmap_label.Label(DISPLAY_FONT, color=DARK_COLOR)
+off_time_label.anchor_point = (0, 0)
+off_time_label.anchored_position = (153, 101)
+
+main_group.append(datetime_label)
+main_group.append(white_label)
+main_group.append(lux_label)
+main_group.append(sunrise_img)
+main_group.append(sunrise_time_label)
+main_group.append(sunset_img)
+main_group.append(sunset_time_label)
+main_group.append(on_circle_img)
+main_group.append(on_time_label)
+main_group.append(off_circle_img)
+main_group.append(off_time_label)
 main_display.root_group = main_group
 
 # Setup power relay control
 power_relay_pin = DigitalInOut(board.D5)
 power_relay_pin.direction = Direction.OUTPUT
-power_relay_pin.pull = Pull.DOWN
 
 # Setup buttons
 display_on_btn = DigitalInOut(board.D2)
 display_on_btn.direction = Direction.INPUT
 display_off_btn = DigitalInOut(board.D1)
-display_off_btn = Direction.INPUT
-
+display_off_btn.direction = Direction.INPUT
 
 TIME_ZONE_NAME = os.getenv("LOCATION_TIMEZONE_NAME")
 TIME_ZONE_OFFSET = timedelta(hours=int(os.getenv("LOCATION_TIMEZONE_OFFSET")))
@@ -137,8 +183,8 @@ async def time_setter(tc: TimerCondition) -> None:
             + get_off_variation_from_range()
         )
         tc.initialized = True
-        main_group[2].text = f"On: {str(tc.lamp_on_time).split()[-1]}"
-        main_group[3].text = f"Off: {str(tc.lamp_off_time).split()[-1]}"
+        main_group[8].text = f" {str(tc.lamp_on_time).split()[-1]}"
+        main_group[10].text = f" {str(tc.lamp_off_time).split()[-1]}"
 
         tc.next_check_time = datetime.combine(current_date, CHECK_TIME) + ONE_DAY
         current_delta = get_seconds_from_now(tc.next_check_time)
@@ -182,7 +228,8 @@ async def measure_light() -> None:
             gain = veml7700.gain_value()
             integration_time = veml7700.integration_time_value()
 
-            main_group[1].text = f"Lux: {autolux:.2f}"
+            main_group[1].text = f"W: {white} adc"
+            main_group[2].text = f"L: {autolux:.2f} lux"
 
             light_measurements_and_tags = [os.getenv("MQTT_LIGHT_MEASUREMENT")]
             light_fields = Fields(
@@ -214,7 +261,7 @@ async def monitor_buttons() -> None:
             main_display.root_group = None
         if display_on_btn.value:
             main_display.root_group = main_group
-        await asyncio.sleep(1)
+        await asyncio.sleep(0)
 
 
 async def main():

@@ -32,3 +32,10 @@ adafruit = [
 fonts = [
     "SpartanMB-Regular-12.bdf"
 ]
+
+images = [
+    "Off_Circle.bmp",
+    "On_Circle.bmp",
+    "Sunrise.bmp",
+    "Sunset.bmp"
+]
