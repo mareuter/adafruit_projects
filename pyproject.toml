@@ -32,6 +32,7 @@ dependencies = [
     "adafruit-circuitpython-register",
     "adafruit-circuitpython-requests",
     "adafruit-circuitpython-sht4x",
+    "adafruit-circuitpython-thermistor",
     "adafruit-circuitpython-typing",
     "adafruit-circuitpython-veml7700",
 ]
