@@ -8,7 +8,7 @@ import shutil
 import sys
 import tomllib
 
-__all__ = ["ProjectHandler"]
+__all__ = ["CopyOptions", "MqttInformation", "ProjectHandler"]
 
 CIRCUITPY_DIR = "CIRCUITPY"
 MPY_EXT = ".mpy"
@@ -28,10 +28,25 @@ class MqttInformation:
     sensor_name: str | None
 
 
+@dataclasses.dataclass
+class CopyOptions:
+    """Options for copying project files."""
+
+    code: bool
+    settings: bool
+    dependencies: bool
+    media: bool
+
+    @property
+    def all(self):
+        return not (self.code or self.settings or self.dependencies or self.media)
+
+
 class ProjectHandler:
     def __init__(
         self,
         project_file: pathlib.Path | None = None,
+        copy_options: CopyOptions | None = None,
         mqtt_info: MqttInformation | None = None,
         debug_dir: pathlib.Path | None = None,
     ):
@@ -55,6 +70,7 @@ class ProjectHandler:
             )
         self.circuitboard_lib = self.circuitboard_location / "lib"
         self.project_file = project_file
+        self.copy_options = copy_options
         self.mqtt_info = mqtt_info
 
     def _check_project_file(self) -> None:
@@ -187,31 +203,35 @@ class ProjectHandler:
         with self.project_file.expanduser().open("rb") as ifile:
             self.project_info = tomllib.load(ifile)
 
-        temp_settings_file = self._create_settings_file()
-        shutil.copy(
-            temp_settings_file,
-            self.circuitboard_location / SETTINGS_FILE,
-        )
-        temp_settings_file.unlink()
-
-        project_dir = self.project_file.parent
-        shutil.copy(
-            project_dir / self.project_info["code"],
-            self.circuitboard_location / CODE_FILE,
-        )
-
-        self._copy_file_or_directory("defaults", "adafruit")
-
-        local_imports = self.project_info["imports"]["local"]
-        for local_import in local_imports:
+        if self.copy_options.settings or self.copy_options.all:
+            temp_settings_file = self._create_settings_file()
             shutil.copy(
-                self.local_modules / (local_import + MPY_EXT), self.circuitboard_lib
+                temp_settings_file,
+                self.circuitboard_location / SETTINGS_FILE,
             )
-            self._copy_file_or_directory(local_import, "adafruit")
+            temp_settings_file.unlink()
 
-        self._copy_file_or_directory("imports", "adafruit", use_project_info=True)
+        if self.copy_options.code or self.copy_options.all:
+            project_dir = self.project_file.parent
+            shutil.copy(
+                project_dir / self.project_info["code"],
+                self.circuitboard_location / CODE_FILE,
+            )
 
-        self._copy_media()
+        if self.copy_options.dependencies or self.copy_options.all:
+            self._copy_file_or_directory("defaults", "adafruit")
+
+            local_imports = self.project_info["imports"]["local"]
+            for local_import in local_imports:
+                shutil.copy(
+                    self.local_modules / (local_import + MPY_EXT), self.circuitboard_lib
+                )
+                self._copy_file_or_directory(local_import, "adafruit")
+
+            self._copy_file_or_directory("imports", "adafruit", use_project_info=True)
+
+        if self.copy_options.media or self.copy_options.all:
+            self._copy_media()
 
     def get_board_info(self) -> None:
         """Get the circuitboard's UID and CircuitPython version."""
