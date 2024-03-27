@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT
 
 from adafruit_bitmap_font import bitmap_font
-from adafruit_datetime import datetime, time, timedelta, timezone
+from adafruit_datetime import datetime, time
 from adafruit_display_text import bitmap_label
 import adafruit_requests
 import adafruit_veml7700
@@ -13,7 +13,6 @@ from digitalio import DigitalInOut, Direction
 import displayio
 import json
 import os
-import random
 import ssl
 
 from mqtt_helper import Fields, MqttHelper
@@ -50,38 +49,38 @@ label_height = 33
 time_label_width = 87
 main_group = displayio.Group()
 datetime_label = bitmap_label.Label(DISPLAY_FONT, color=TEXT_COLOR)
-datetime_label.anchor_point = (0, 0)
-datetime_label.anchored_position = (0, 2)
+datetime_label.anchor_point = (0.5, 0.25)
+datetime_label.anchored_position = (half_label_width, 10)
 white_label = bitmap_label.Label(DISPLAY_FONT, color=TEXT_COLOR)
-white_label.anchor_point = (0, 0)
-white_label.anchored_position = (0, 35)
+white_label.anchor_point = (0.25, 0.25)
+white_label.anchored_position = (30, 43)
 lux_label = bitmap_label.Label(DISPLAY_FONT, color=TEXT_COLOR)
-lux_label.anchor_point = (0, 0)
-lux_label.anchored_position = (half_label_width, 35)
+lux_label.anchor_point = (0.25, 0.25)
+lux_label.anchored_position = (half_label_width + 30, 43)
 sunrise_img = displayio.TileGrid(
     SUNRISE_BMP, pixel_shader=SUNRISE_BMP.pixel_shader, x=0, y=68
 )
 sunrise_time_label = bitmap_label.Label(DISPLAY_FONT, color=LIGHT_COLOR)
-sunrise_time_label.anchor_point = (0, 0)
-sunrise_time_label.anchored_position = (33, 68)
+sunrise_time_label.anchor_point = (0.5, 0.3175)
+sunrise_time_label.anchored_position = (76, 78)
 sunset_img = displayio.TileGrid(
     SUNSET_BMP, pixel_shader=SUNSET_BMP.pixel_shader, x=120, y=68
 )
 sunset_time_label = bitmap_label.Label(DISPLAY_FONT, color=DARK_COLOR)
-sunset_time_label.anchor_point = (0, 0)
-sunset_time_label.anchored_position = (153, 68)
+sunset_time_label.anchor_point = (0.5, 0.3175)
+sunset_time_label.anchored_position = (196, 78)
 on_circle_img = displayio.TileGrid(
     ON_CIRCLE_BMP, pixel_shader=ON_CIRCLE_BMP.pixel_shader, x=0, y=101
 )
 on_time_label = bitmap_label.Label(DISPLAY_FONT, color=LIGHT_COLOR)
-on_time_label.anchor_point = (0, 0)
-on_time_label.anchored_position = (33, 101)
+on_time_label.anchor_point = (0.5, 0.3175)
+on_time_label.anchored_position = (76, 111)
 off_circle_img = displayio.TileGrid(
     OFF_CIRCLE_BMP, pixel_shader=OFF_CIRCLE_BMP.pixel_shader, x=120, y=101
 )
 off_time_label = bitmap_label.Label(DISPLAY_FONT, color=DARK_COLOR)
-off_time_label.anchor_point = (0, 0)
-off_time_label.anchored_position = (153, 101)
+off_time_label.anchor_point = (0.5, 0.3175)
+off_time_label.anchored_position = (196, 111)
 
 main_group.append(datetime_label)
 main_group.append(white_label)
@@ -107,12 +106,9 @@ display_off_btn = DigitalInOut(board.D1)
 display_off_btn.direction = Direction.INPUT
 
 TIME_ZONE_NAME = os.getenv("LOCATION_TIMEZONE_NAME")
-TIME_ZONE_OFFSET = timedelta(hours=int(os.getenv("LOCATION_TIMEZONE_OFFSET")))
-TIME_ZONE = timezone(offset=TIME_ZONE_OFFSET, name=TIME_ZONE_NAME)
-CHECK_TIME = time(0, 10, 0)
-ONE_DAY = timedelta(days=1)
-FIVE_MINUTES = timedelta(seconds=300)
-TEN_MINUTES = timedelta(seconds=600)
+CHECK_TIME = os.getenv("CHECK_TIME")
+ON_RANGE = os.getenv("ON_RANGE")
+OFF_RANGE = os.getenv("OFF_RANGE")
 LAMP_OFF_TIME = time.fromisoformat(os.getenv("LAMP_OFF_TIME"))
 LOCATION_LONGITUDE = os.getenv("LOCATION_LONGITUDE")
 LOCATION_LATITUDE = os.getenv("LOCATION_LATITUDE")
@@ -129,64 +125,60 @@ class TimerCondition:
         self.lamp_off_time = None
 
 
-def get_current_time() -> datetime:
-    return datetime.now() + TIME_ZONE_OFFSET
+def get_current_time() -> float:
+    return datetime.now()
 
 
-def get_seconds_from_now(dt: datetime) -> int:
+def get_seconds_from_now(dt: float) -> float:
     now = get_current_time()
-    return (dt - now).total_seconds()
-
-
-def get_on_variation_from_range() -> timedelta:
-    value = random.randrange(-FIVE_MINUTES.seconds, FIVE_MINUTES.seconds)
-    return timedelta(seconds=value)
-
-
-def get_off_variation_from_range() -> timedelta:
-    value = random.randrange(-TEN_MINUTES.seconds, TEN_MINUTES.seconds)
-    return timedelta(seconds=value)
+    print(f"Now: {now.timestamp()}")
+    return dt - now.timestamp()
 
 
 async def time_setter(tc: TimerCondition) -> None:
     while True:
         current_time = get_current_time()
-        current_date = current_time.date()
         print(current_time)
         print("Setting up conditions")
 
         url = [
             HELIOS_WEBSERVICE,
             "?",
-            f"cdatetime={int((current_time - TIME_ZONE_OFFSET).timestamp())}",
+            f"cdatetime={int(current_time.timestamp())}",
             "&",
             f"tz={TIME_ZONE_NAME}",
             "&",
             f"lat={LOCATION_LATITUDE}",
             "&",
             f"lon={LOCATION_LONGITUDE}",
+            "&",
+            f"checktime={CHECK_TIME}",
+            "&",
+            f"offtime={LAMP_OFF_TIME}",
+            "&",
+            f"onrange={ON_RANGE}",
+            "&",
+            f"offrange={OFF_RANGE}",
         ]
 
         print("".join(url))
         response = requests.get("".join(url))
         info = json.loads(response.content.decode())
-        print(int((current_time - TIME_ZONE_OFFSET).timestamp()))
-        print(int(info["sunset"]))
-        print(datetime.fromtimestamp(float(info["sunset"])) + TIME_ZONE_OFFSET)
-        tc.lamp_on_time = (
-            datetime.fromtimestamp(float(info["sunset"]))
-            + TIME_ZONE_OFFSET
-            + get_on_variation_from_range()
-        )
-        tc.lamp_off_time = (
-            datetime.combine(current_date, LAMP_OFF_TIME)
-            + get_off_variation_from_range()
-        )
-        tc.initialized = True
-        main_group[8].text = f" {str(tc.lamp_on_time).split()[-1]}"
-        main_group[10].text = f" {str(tc.lamp_off_time).split()[-1]}"
 
-        tc.next_check_time = datetime.combine(current_date, CHECK_TIME) + ONE_DAY
+        tc.lamp_on_time = info["on_time_utc"]
+        print(f"LOnT: {tc.lamp_on_time}")
+        tc.lamp_off_time = info["off_time_utc"]
+        print(f"LOfT: {tc.lamp_off_time}")
+        tc.next_check_time = info["check_time_utc"]
+        print(f"CHKT: {tc.next_check_time}")
+        tc.initialized = True
+
+        main_group[0].text = info["date"]
+        main_group[4].text = info["sunrise_usno"]
+        main_group[6].text = info["sunset_usno"]
+        main_group[8].text = info["on_time"]
+        main_group[10].text = info["off_time"]
+
         current_delta = get_seconds_from_now(tc.next_check_time)
         print(f"Next check time in {current_delta} seconds")
         await asyncio.sleep(current_delta)
@@ -208,9 +200,9 @@ async def lamp_control(tc: TimerCondition) -> None:
         print(f"Lamp off time in {current_delta} seconds")
         await asyncio.sleep(current_delta)
         print(f"Turning off lamp at {get_current_time()}")
-        current_delta = get_seconds_from_now(tc.next_check_time) + 10
         # GPIO off
         # power_relay_pin.value = False
+        current_delta = get_seconds_from_now(tc.next_check_time) + 10
         print(f"Next lamp control check in {current_delta} seconds")
         await asyncio.sleep(current_delta)
 
@@ -246,15 +238,6 @@ async def measure_light() -> None:
         await asyncio.sleep(MEASURE_TIME)
 
 
-async def display_information() -> None:
-    while True:
-        now = get_current_time()
-        date_str, time_str = now.isoformat().split("T")
-        time_str = ":".join(time_str.split(":")[:-1])
-        main_group[0].text = f"{date_str} {time_str}"
-        await asyncio.sleep(60)
-
-
 async def monitor_buttons() -> None:
     while True:
         if display_off_btn.value:
@@ -268,11 +251,10 @@ async def main():
     print("Setup")
     tc = TimerCondition()
     await asyncio.gather(
-        display_information(),
-        monitor_buttons(),
-        measure_light(),
         time_setter(tc),
         lamp_control(tc),
+        measure_light(),
+        monitor_buttons(),
     )
 
 
