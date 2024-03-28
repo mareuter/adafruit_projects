@@ -2,7 +2,10 @@
 #
 # SPDX-License-Identifier: MIT
 
-.PHONY: module
+.PHONY: module cleam
 
 module:
 	$(MAKE) -C modules all
+
+clean:
+	$(MAKE) -C modules clean
