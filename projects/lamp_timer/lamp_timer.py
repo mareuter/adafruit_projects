@@ -131,7 +131,7 @@ def get_current_time() -> float:
 
 def get_seconds_from_now(dt: float) -> float:
     now = get_current_time()
-    print(f"Now: {now.timestamp()}")
+    print(f"Now: {now.timestamp():.f}")
     return dt - now.timestamp()
 
 
@@ -166,11 +166,11 @@ async def time_setter(tc: TimerCondition) -> None:
         info = json.loads(response.content.decode())
 
         tc.lamp_on_time = info["on_time_utc"]
-        print(f"LOnT: {tc.lamp_on_time}")
+        print(f"LOnT: {tc.lamp_on_time:.f}")
         tc.lamp_off_time = info["off_time_utc"]
-        print(f"LOfT: {tc.lamp_off_time}")
+        print(f"LOfT: {tc.lamp_off_time:.f}")
         tc.next_check_time = info["check_time_utc"]
-        print(f"CHKT: {tc.next_check_time}")
+        print(f"CHKT: {tc.next_check_time:.f}")
         tc.initialized = True
 
         main_group[0].text = info["date"]
@@ -196,12 +196,12 @@ async def lamp_control(tc: TimerCondition) -> None:
         print(f"Turning on lamp at {get_current_time()}")
         current_delta = get_seconds_from_now(tc.lamp_off_time)
         # GPIO on
-        # power_relay_pin.value = True
+        power_relay_pin.value = True
         print(f"Lamp off time in {current_delta} seconds")
         await asyncio.sleep(current_delta)
         print(f"Turning off lamp at {get_current_time()}")
         # GPIO off
-        # power_relay_pin.value = False
+        power_relay_pin.value = False
         current_delta = get_seconds_from_now(tc.next_check_time) + 10
         print(f"Next lamp control check in {current_delta} seconds")
         await asyncio.sleep(current_delta)
