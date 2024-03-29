@@ -242,7 +242,10 @@ async def monitor_buttons() -> None:
     while True:
         if display_off_btn.value:
             main_display.root_group = None
+            main_display.brightness = 0.0
         if display_on_btn.value:
+            if main_display.brightness != 1.0:
+                main_display.brightness = 1.0
             main_display.root_group = main_group
         await asyncio.sleep(0)
 
