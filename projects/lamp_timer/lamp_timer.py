@@ -15,6 +15,7 @@ import json
 import os
 import ssl
 
+from battery_helper import BatteryHelper
 from mqtt_helper import Fields, MqttHelper
 import wifi_helper
 
@@ -30,6 +31,7 @@ ssl_default_context = ssl.create_default_context()
 requests = adafruit_requests.Session(pool, ssl_default_context)
 
 i2c = board.STEMMA_I2C()
+battery_monitor = BatteryHelper(i2c)
 veml7700 = adafruit_veml7700.VEML7700(i2c)
 veml7700.light_gain = veml7700.ALS_GAIN_1_8
 veml7700.light_integration_time = veml7700.ALS_100MS
@@ -44,6 +46,7 @@ ON_CIRCLE_BMP = displayio.OnDiskBitmap("images/On_Circle.bmp")
 SUNRISE_BMP = displayio.OnDiskBitmap("images/Sunrise.bmp")
 SUNSET_BMP = displayio.OnDiskBitmap("images/Sunset.bmp")
 main_display = board.DISPLAY
+main_display.brightness = 1.0
 half_label_width = main_display.width // 2
 label_height = 33
 time_label_width = 87
@@ -115,6 +118,7 @@ LOCATION_LATITUDE = os.getenv("LOCATION_LATITUDE")
 LOCATION_HEIGHT = os.getenv("LOCATION_HEIGHT")
 HELIOS_WEBSERVICE = os.getenv("HELIOS_WEBSERVICE")
 MEASURE_TIME = 5 * 60
+DISPLAY_TIMEOUT = 5 * 60
 
 
 class TimerCondition:
@@ -131,14 +135,33 @@ def get_current_time() -> float:
 
 def get_seconds_from_now(dt: float) -> float:
     now = get_current_time()
-    print(f"Now: {now.timestamp():.f}")
+    print(f"Now: {now.timestamp():.0f}")
     return dt - now.timestamp()
+
+
+async def dim_screen(evt: asyncio.Event) -> None:
+    while True:
+        interrupted = False
+        await evt.wait()
+        print("Starting display timeout")
+        timeout = DISPLAY_TIMEOUT
+        while timeout > 0:
+            if not evt.is_set():
+                interrupted = True
+                print("Interrupt display timeout")
+                break
+            await asyncio.sleep(1)
+            timeout -= 1
+        if not interrupted:
+            print("Turning off display")
+            main_display.brightness = 0.0
+            evt.clear()
 
 
 async def time_setter(tc: TimerCondition) -> None:
     while True:
         current_time = get_current_time()
-        print(current_time)
+        print(int(current_time.timestamp()))
         print("Setting up conditions")
 
         url = [
@@ -163,14 +186,14 @@ async def time_setter(tc: TimerCondition) -> None:
 
         print("".join(url))
         response = requests.get("".join(url))
-        info = json.loads(response.content.decode())
+        info = json.loads(response.content)
 
         tc.lamp_on_time = info["on_time_utc"]
-        print(f"LOnT: {tc.lamp_on_time:.f}")
+        print(f"LOnT: {tc.lamp_on_time}")
         tc.lamp_off_time = info["off_time_utc"]
-        print(f"LOfT: {tc.lamp_off_time:.f}")
+        print(f"LOfT: {tc.lamp_off_time}")
         tc.next_check_time = info["check_time_utc"]
-        print(f"CHKT: {tc.next_check_time:.f}")
+        print(f"CHKT: {tc.next_check_time}")
         tc.initialized = True
 
         main_group[0].text = info["date"]
@@ -213,6 +236,12 @@ async def measure_light() -> None:
             writer = MqttHelper(os.getenv("MQTT_SENSOR_NAME"), pool, 120)
             writer.mark_time()
 
+            (
+                battery_percent,
+                battery_voltage,
+                battery_temperature,
+            ) = battery_monitor.measure()
+
             light = veml7700.light
             lux = veml7700.lux
             autolux = veml7700.autolux
@@ -233,31 +262,44 @@ async def measure_light() -> None:
                 integration_time=integration_time,
             )
 
+            battery_measurements_and_tags = [os.getenv("MQTT_BATTERY_MEASUREMENT")]
+            battery_fields = Fields(
+                percent=battery_percent,
+                voltage=battery_voltage,
+                temperature=battery_temperature,
+            )
+
             writer.publish(light_measurements_and_tags, light_fields)
+            writer.publish(battery_measurements_and_tags, battery_fields)
 
         await asyncio.sleep(MEASURE_TIME)
 
 
-async def monitor_buttons() -> None:
+async def monitor_buttons(evt: asyncio.Event) -> None:
+    evt.set()
     while True:
         if display_off_btn.value:
             main_display.root_group = None
             main_display.brightness = 0.0
+            evt.clear()
         if display_on_btn.value:
             if main_display.brightness != 1.0:
                 main_display.brightness = 1.0
             main_display.root_group = main_group
+            evt.set()
         await asyncio.sleep(0)
 
 
 async def main():
     print("Setup")
     tc = TimerCondition()
+    display_event = asyncio.Event()
     await asyncio.gather(
         time_setter(tc),
         lamp_control(tc),
         measure_light(),
-        monitor_buttons(),
+        monitor_buttons(display_event),
+        dim_screen(display_event),
     )
 
 
