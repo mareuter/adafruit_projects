@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Michael Reuter
+# SPDX-FileCopyrightText: 2023-2024 Michael Reuter
 #
 # SPDX-License-Identifier: MIT
 
@@ -10,6 +10,7 @@ adafruit = [
 
 [mqtt_helper]
 adafruit = [
+    "adafruit_connection_manager",
     "adafruit_minimqtt"
 ]
 
@@ -23,6 +24,11 @@ adafruit = [
     "adafruit_ticks"
 ]
 
+[adafruit_requests]
+adafruit = [
+    "adafruit_connection_manager"
+]
+
 [defaults]
 adafruit = [
     "adafruit_bus_device",
@@ -31,7 +37,7 @@ adafruit = [
 
 [adafruit]
 module_location = "~/code/adafruit"
-bundle = "adafruit-circuitpython-bundle-8.x-mpy-20231017"
+bundle = "adafruit-circuitpython-bundle-9.x-mpy"
 is_directory = [
     "adafruit_bitmap_font",
     "adafruit_bus_device",
@@ -44,4 +50,4 @@ is_directory = [
 
 [circuitpython]
 module_location = "~/code/adafruit"
-bundle = "circuitpython-community-bundle-8.x-mpy-20231017"
+bundle = "circuitpython-community-bundle-9.x-mpy"

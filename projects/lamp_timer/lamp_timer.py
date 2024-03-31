@@ -272,6 +272,8 @@ async def measure_light() -> None:
             writer.publish(light_measurements_and_tags, light_fields)
             writer.publish(battery_measurements_and_tags, battery_fields)
 
+            writer.client.disconnect()
+
         await asyncio.sleep(MEASURE_TIME)
 
 

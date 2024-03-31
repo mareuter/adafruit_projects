@@ -9,6 +9,7 @@ general = [
     "wifi",
     "mqtt"
 ]
+local = "settings_pooltemp.toml"
 
 [imports]
 local = [

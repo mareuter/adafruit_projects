@@ -367,6 +367,8 @@ class ProjectHandler:
                     bdl.unlink()
                     link_dir = uz_bld_dir.name.strip(f"-{bundle_date}")
                     uz_link_dir = main_dir / link_dir
+                    if uz_link_dir.exists():
+                        uz_link_dir.unlink()
                     uz_link_dir.symlink_to(uz_bld_dir)
                 else:
                     print(f"{bundle_file} download failed.")
