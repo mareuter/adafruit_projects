@@ -7,8 +7,11 @@ import pathlib
 import shutil
 import sys
 import tomllib
+import zipfile
 
-__all__ = ["CopyOptions", "MqttInformation", "ProjectHandler"]
+import requests
+
+__all__ = ["CopyOptions", "DownloadOptions", "MqttInformation", "ProjectHandler"]
 
 CIRCUITPY_DIR = "CIRCUITPY"
 MPY_EXT = ".mpy"
@@ -42,12 +45,30 @@ class CopyOptions:
         return not (self.code or self.settings or self.dependencies or self.media)
 
 
+@dataclasses.dataclass
+class DownloadOptions:
+    """Options for downloading CircuitPython."""
+
+    boards: bool
+    cross_compiler: bool
+    bundles: bool
+
+    @property
+    def all(self):
+        return not (self.boards or self.cross_compiler or self.bundles)
+
+    @property
+    def version(self):
+        return self.boards and self.cross_compiler
+
+
 class ProjectHandler:
     def __init__(
         self,
         project_file: pathlib.Path | None = None,
         copy_options: CopyOptions | None = None,
         mqtt_info: MqttInformation | None = None,
+        download_options: DownloadOptions | None = None,
         debug_dir: pathlib.Path | None = None,
     ):
         """Class constructor.
@@ -72,6 +93,22 @@ class ProjectHandler:
         self.project_file = project_file
         self.copy_options = copy_options
         self.mqtt_info = mqtt_info
+        self.download_options = download_options
+
+    def _check_download(self, resp: requests.Response) -> bool:
+        """Ensure the download completed successfully.
+
+        Parameters
+        ----------
+        resp : requests.Response
+            The response from the requests.get
+
+        Returns
+        -------
+        bool
+            True if download was successful, False if not.
+        """
+        return resp.ok and resp.status_code == 200
 
     def _check_project_file(self) -> None:
         """Check to see if the project file is set.
@@ -188,6 +225,30 @@ class ProjectHandler:
         top_loc = pathlib.Path(dep_type["module_location"]).expanduser()
         return top_loc / dep_type["bundle"] / "lib"
 
+    def _save_downloaded_file(
+        self, content: bytes, save_dir: pathlib.Path, save_file: str
+    ) -> pathlib.Path:
+        """Save the file to the specified directory.
+
+        Parameters
+        ----------
+        content
+            The file content.
+        save_dir : pathlib.Path
+            The directory to save the file to.
+        save_file : str
+            The file to save.
+
+        Returns
+        -------
+        pathlib.Path
+            Fully qualified save path.
+        """
+        fq_save = save_dir / save_file
+        with fq_save.open("wb") as sfile:
+            sfile.write(content)
+        return fq_save
+
     def clean_debug_dir(self) -> None:
         """Clean the debug directory for project testing."""
         shutil.rmtree(self.circuitboard_location, ignore_errors=True)
@@ -243,6 +304,93 @@ class ProjectHandler:
                 print(f"{' '.join(parts[:3])}")
             if line.startswith("UID"):
                 print(line)
+
+    def get_circuitpython(self, version: str, bundle_date: str) -> None:
+        """Download CircuitPython, bundles and cross-compiler for version.
+
+        Parameters
+        ----------
+        version : str
+            The CircuitPython version.
+        bundle_data : str
+            The Adafruit/Community bundle date in YYYYMMDD format.
+        """
+        main_dir = pathlib.Path("~/code/adafruit").expanduser()
+        main_dir.mkdir(exist_ok=True)
+        bootload_dir = main_dir / "bootloader" / version
+        bootload_dir.mkdir(exist_ok=True)
+        bundle_version = f"{version.split('.')[0]}.x"
+
+        circuitpython_info = self.top_dir / "projects" / "circuitpython.toml"
+        with circuitpython_info.open("rb") as mfile:
+            circuitpython_info = tomllib.load(mfile)
+
+        base_url = circuitpython_info["storage_url"]
+        locale = circuitpython_info["locale"]
+
+        if (
+            self.download_options.boards
+            or self.download_options.version
+            or self.download_options.all
+        ):
+            for board in circuitpython_info["boards"]:
+                bootloader = f"adafruit-circuitpython-{board}-{locale}-{version}.uf2"
+                url = f"{base_url}/bin/{board}/{locale}/{bootloader}"
+                response = requests.get(url)
+                if self._check_download(response):
+                    _ = self._save_downloaded_file(
+                        response.content, bootload_dir, bootloader
+                    )
+                else:
+                    print(f"{bootloader} download failed.")
+
+        if self.download_options.bundles or self.download_options.all:
+            for bundle in ["adafruit", "community"]:
+                if bundle == "adafruit":
+                    bundle_stem = "adafruit-circuitpython"
+                if bundle == "community":
+                    bundle_stem = "circuitpython-community"
+                bundle_file = (
+                    f"{bundle_stem}-bundle-{bundle_version}-mpy-{bundle_date}.zip"
+                )
+                url = f"{base_url}/bundles/{bundle}/{bundle_file}"
+                response = requests.get(url)
+                if self._check_download(response):
+                    bdl = self._save_downloaded_file(
+                        response.content, main_dir, bundle_file
+                    )
+                    bdl_dir = bdl.stem
+                    uz_bld_dir = main_dir / bdl_dir
+                    zf = zipfile.ZipFile(bdl)
+                    zf.extractall(main_dir)
+                    zf.close()
+                    bdl.unlink()
+                    link_dir = uz_bld_dir.name.strip(f"-{bundle_date}")
+                    uz_link_dir = main_dir / link_dir
+                    uz_link_dir.symlink_to(uz_bld_dir)
+                else:
+                    print(f"{bundle_file} download failed.")
+
+        if (
+            self.download_options.cross_compiler
+            or self.download_options.version
+            or self.download_options.all
+        ):
+            cross_compiler = f"mpy-cross-linux-amd64-{version}.static"
+            url = f"{base_url}/bin/mpy-cross/linux-amd64/{cross_compiler}"
+            bin_dir = pathlib.Path("~/bin").expanduser()
+            response = requests.get(url)
+            if self._check_download(response):
+                cc = self._save_downloaded_file(
+                    response.content, bin_dir, cross_compiler
+                )
+                cc.chmod(0o755)
+                cc_link = bin_dir / "mpy"
+                if cc_link.exists():
+                    cc_link.unlink()
+                cc_link.symlink_to(cc)
+            else:
+                print(f"{cross_compiler} download failed.")
 
     def web_development(self, undo: bool) -> None:
         """Setup a board for web development mode.
