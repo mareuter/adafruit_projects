@@ -432,9 +432,8 @@ class ProjectHandler:
                     line = f'{key}="{value}"' + os.linesep
                     sofile.write(line)
 
-            with boot_file.open("w") as bofile:
-                bofile.write("import storage")
-                bofile.write("storage.disable_usb_drive()")
+            shutil.copy(settings_temp, settings_file)
 
-            shutil.copy(settings_temp, self.circuitboard_location)
-            shutil.copy(boot_file, self.circuitboard_location)
+            with boot_file.open("w") as bofile:
+                bofile.write("import storage" + os.linesep)
+                bofile.write("storage.disable_usb_drive()" + os.linesep)
