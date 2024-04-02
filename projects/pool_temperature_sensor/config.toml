@@ -1,9 +1,15 @@
-# SPDX-FileCopyrightText: 2023 Michael Reuter
+# SPDX-FileCopyrightText: 2023-2024 Michael Reuter
 #
 # SPDX-License-Identifier: MIT
 
-settings = "settings_pooltemperature.toml"
 code = "pool_temperature_sensor.py"
+
+[settings]
+general = [
+    "wifi",
+    "mqtt"
+]
+local = "settings_pooltemp.toml"
 
 [imports]
 local = [
@@ -14,5 +20,6 @@ local = [
 ]
 adafruit = [
     "adafruit_onewire",
-    "adafruit_ds18x20"
+    "adafruit_ds18x20",
+    "adafruit_thermistor"
 ]

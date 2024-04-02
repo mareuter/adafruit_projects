@@ -21,6 +21,7 @@ dependencies = [
     "adafruit-blinka-displayio",
     "adafruit-circuitpython-bitmap-font",
     "adafruit-circuitpython-busdevice",
+    "adafruit-circuitpython-datetime",
     "adafruit-circuitpython-display-text",
     "adafruit-circuitpython-ds18x20",
     "adafruit-circuitpython-lc709203f",
@@ -31,6 +32,7 @@ dependencies = [
     "adafruit-circuitpython-register",
     "adafruit-circuitpython-requests",
     "adafruit-circuitpython-sht4x",
+    "adafruit-circuitpython-thermistor",
     "adafruit-circuitpython-typing",
     "adafruit-circuitpython-veml7700",
 ]
@@ -39,3 +41,6 @@ dependencies = [
 clean_debug_dir = "project_helper.clean_debug_dir:runner"
 convert_font = "project_helper.convert_font:runner"
 copy_project = "project_helper.copy_project:runner"
+get_board_info = "project_helper.get_board_info:runner"
+get_circuitpython = "project_helper.get_circuitpython:runner"
+web_dev = "project_helper.web_dev:runner"

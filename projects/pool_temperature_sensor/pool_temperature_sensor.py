@@ -4,6 +4,7 @@
 
 import adafruit_ds18x20
 from adafruit_onewire.bus import OneWireBus
+import adafruit_thermistor
 import alarm
 import board
 import os
@@ -15,11 +16,16 @@ import power_helper
 import wifi_helper
 
 ALARM_TIME = 5 * 60  # seconds
+NTC_THERM_RESISTOR = 10000.0  # ohms
+THERM_VDIV_RESISTOR = 10000.0  # ohms
+NOMINAL_THERM_TEMP = 25.0  # C
+THERM_BETA = 3950.0
 
 # Defaults for values
-temperature = None
+water_temperature = None
+battery_temperature = None
 
-pool = wifi_helper.setup_wifi_and_rtc(start_delay=True)
+pool = wifi_helper.setup_wifi_and_rtc(start_delay=True, num_retries=1)
 
 if pool is not None:
     # power_helper.i2c_power(True)
@@ -31,6 +37,15 @@ if pool is not None:
     ds18b20 = adafruit_ds18x20.DS18X20(ow_bus, ow_bus.scan()[0])
     ds18b20.resolution = 9
 
+    thermistor = adafruit_thermistor.Thermistor(
+        board.A1,
+        NTC_THERM_RESISTOR,
+        THERM_VDIV_RESISTOR,
+        NOMINAL_THERM_TEMP,
+        THERM_BETA,
+        high_side=False,
+    )
+
     i2c = board.STEMMA_I2C()
     battery_monitor = BatteryHelper(i2c)
 
@@ -38,19 +53,29 @@ if pool is not None:
 
     writer.mark_time()
 
-    battery_percent, battery_voltage, battery_temperature = battery_monitor.measure()
-    temperature = ds18b20.temperature
+    battery_percent, battery_voltage, _ = battery_monitor.measure()
+    battery_temperature = thermistor.temperature
+    try:
+        water_temperature = ds18b20.temperature
+    except RuntimeError:
+        print("Cannot read water temperature sensor")
+        pass
 
-    battery_measurements_and_tags = ["testbattery"]
+    print(battery_percent, battery_voltage)
+    print(battery_temperature)
+    print(thermistor.resistance)
+    print(water_temperature)
+
+    battery_measurements_and_tags = [os.getenv("MQTT_BATTERY_MEASUREMENT")]
     battery_fields = Fields(
         percent=battery_percent,
         voltage=battery_voltage,
         temperature=battery_temperature,
     )
 
-    environment_measurements_and_tags = ["testenvironment"]
+    environment_measurements_and_tags = [os.getenv("MQTT_ENVIRONMENT_MEASUREMENT")]
     environment_fields = Fields(
-        temperature=temperature,
+        water_temperature=water_temperature,
     )
 
     writer.publish(battery_measurements_and_tags, battery_fields)

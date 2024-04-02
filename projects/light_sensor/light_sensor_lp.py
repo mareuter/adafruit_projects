@@ -22,7 +22,7 @@ white = None
 gain = None
 integration_time = None
 
-pool = wifi_helper.setup_wifi_and_rtc(start_delay=True)
+pool = wifi_helper.setup_wifi_and_rtc(start_delay=True, num_retries=1)
 
 if pool is not None:
     power_helper.neopixel_power(False)
@@ -47,14 +47,14 @@ if pool is not None:
     gain = veml7700.gain_value()
     integration_time = veml7700.integration_time_value()
 
-    battery_measurements_and_tags = ["testbattery"]
+    battery_measurements_and_tags = [os.getenv("MQTT_BATTERY_MEASUREMENT")]
     battery_fields = Fields(
         percent=battery_percent,
         voltage=battery_voltage,
         temperature=battery_temperature,
     )
 
-    light_measurements_and_tags = ["testlight"]
+    light_measurements_and_tags = [os.getenv("MQTT_LIGHT_MEASUREMENT")]
     light_fields = Fields(
         light=light,
         lux=lux,

@@ -11,6 +11,7 @@ import wifi
 
 MQTT_CLIENT_API = "sensors/data"
 TIME_IN_NS = 1000000000
+LOOP_TIMEOUT = 2  # seconds
 
 
 class Fields:
@@ -85,7 +86,7 @@ class MqttHelper:
             self.client.connect(keep_alive=self.connection_timeout)
 
             try:
-                self.client.loop()
+                self.client.loop(LOOP_TIMEOUT)
             except (ValueError, RuntimeError) as e:
                 print("Failed to get data, retrying\n", e)
                 wifi.reset()

@@ -19,7 +19,7 @@ ALARM_TIME = 5 * 60  # seconds
 temperature = None
 relative_humidity = None
 
-pool = wifi_helper.setup_wifi_and_rtc(start_delay=True)
+pool = wifi_helper.setup_wifi_and_rtc(start_delay=True, num_retries=1)
 
 if pool is not None:
     # power_helper.i2c_power(True)
@@ -38,14 +38,14 @@ if pool is not None:
     battery_percent, battery_voltage, battery_temperature = battery_monitor.measure()
     temperature, relative_humidity = temperature_sensor.measurements
 
-    battery_measurements_and_tags = ["testbattery"]
+    battery_measurements_and_tags = [os.getenv("MQTT_BATTERY_MEASUREMENT")]
     battery_fields = Fields(
         percent=battery_percent,
         voltage=battery_voltage,
         temperature=battery_temperature,
     )
 
-    environment_measurements_and_tags = ["testenvironment"]
+    environment_measurements_and_tags = [os.getenv("MQTT_ENVIRONMENT_MEASUREMENT")]
     environment_fields = Fields(
         temperature=temperature, relative_humidity=relative_humidity
     )

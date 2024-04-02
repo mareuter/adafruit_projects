@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Michael Reuter
+# SPDX-FileCopyrightText: 2023-2024 Michael Reuter
 #
 # SPDX-License-Identifier: MIT
 
@@ -25,7 +25,7 @@ class BatteryHelper:
         else:
             self.monitor = MAX17048(i2c)
 
-    def measure(self) -> (float, float, float):
+    def measure(self) -> tuple[float, float, float]:
         """Retrieve measurements from the battery.
 
         Returns

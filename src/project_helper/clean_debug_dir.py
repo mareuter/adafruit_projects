@@ -1,25 +1,21 @@
-# SPDX-FileCopyrightText: 2023 Michael Reuter
+# SPDX-FileCopyrightText: 2023-2024 Michael Reuter
 #
 # SPDX-License-Identifier: MIT
 import argparse
-import pathlib
-import shutil
+
+from .common_parser import make_parser
+from .project_handler import ProjectHandler
 
 __all__ = ["runner"]
 
 
 def main(opts: argparse.ArgumentParser) -> None:
-    circuitpy_dir: pathlib.Path = opts.debug_dir.expanduser() / "CIRCUITPY"
-    shutil.rmtree(circuitpy_dir, ignore_errors=True)
-    (circuitpy_dir / "lib").mkdir(0o755, parents=True)
+    ph = ProjectHandler(debug_dir=opts.debug_dir.expanduser())
+    ph.clean_debug_dir()
 
 
 def runner() -> None:
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument(
-        "debug_dir", type=pathlib.Path, help="The debugging directory to cleanup."
-    )
+    parser = make_parser()
 
     args = parser.parse_args()
 

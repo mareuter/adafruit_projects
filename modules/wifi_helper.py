@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Michael Reuter
+# SPDX-FileCopyrightText: 2023-2024 Michael Reuter
 #
 # SPDX-License-Identifier: MIT
 
@@ -12,7 +12,7 @@ __all__ = ["setup_wifi_and_rtc"]
 
 
 def setup_wifi_and_rtc(
-    start_delay: bool = False, retry_delay: float = 2
+    start_delay: bool = False, retry_delay: float = 2, num_retries: int = 5
 ) -> socketpool.SocketPool | None:
     """Setup wifi and initialize RTC with NTP.
 
@@ -23,6 +23,8 @@ def setup_wifi_and_rtc(
         sleep, by default False
     retry_delay : f`loat`, optional
         The delay time (seconds) between connection retries, by default 2
+    num_retries : `int`, optional
+        The number of times to retry the wireless connection, default is 5
 
     Returns
     -------
@@ -32,7 +34,7 @@ def setup_wifi_and_rtc(
     if start_delay:
         time.sleep(5)
 
-    retries = 5
+    retries = num_retries
     pool: socketpool.SocketPool | None = None
     while retries > 0:
         try:

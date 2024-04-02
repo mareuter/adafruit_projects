@@ -2,26 +2,40 @@
 #
 # SPDX-License-Identifier: MIT
 
-code = "light_sensor_tft.py"
+code = "lamp_timer.py"
 
 [settings]
 general = [
     "wifi",
     "mqtt"
 ]
+local = "settings_lamptimer.toml"
 
 [imports]
 local = [
     "battery_helper",
     "mqtt_helper",
+    "wifi_helper",
     "adafruit_veml7700"
 ]
 adafruit = [
     "adafruit_bitmap_font",
+    "adafruit_datetime",
     "adafruit_display_text",
     "adafruit_ntp",
+    "adafruit_requests",
+    "adafruit_ticks",
+    "asyncio",
 ]
+
 [media]
 fonts = [
     "SpartanMB-Regular-12.bdf"
+]
+
+images = [
+    "Off_Circle.bmp",
+    "On_Circle.bmp",
+    "Sunrise.bmp",
+    "Sunset.bmp"
 ]
