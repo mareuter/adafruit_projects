@@ -14,8 +14,6 @@ general = [
 local = [
     "battery_helper",
     "mqtt_helper",
+    "wifi_helper",
     "adafruit_veml7700"
-]
-adafruit = [
-    "adafruit_ntp",
 ]
