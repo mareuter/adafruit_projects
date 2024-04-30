@@ -2,16 +2,13 @@
 #
 # SPDX-License-Identifier: MIT
 
-import adafruit_ntp
 import adafruit_veml7700
 import board
 import os
-import rtc
-import socketpool
-import wifi
 
 from battery_helper import BatteryHelper
 from mqtt_helper import Fields, MqttHelper
+import wifi_helper
 
 WAIT_TIME = 5 * 60
 
@@ -22,9 +19,7 @@ white = None
 gain = None
 integration_time = None
 
-pool = socketpool.SocketPool(wifi.radio)
-ntp = adafruit_ntp.NTP(pool, tz_offset=0)
-rtc.RTC().datetime = ntp.datetime
+pool = wifi_helper.setup_wifi_and_rtc(start_delay=True)
 
 i2c = board.STEMMA_I2C()
 battery_monitor = BatteryHelper(i2c)

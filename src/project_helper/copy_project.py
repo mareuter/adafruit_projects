@@ -27,7 +27,7 @@ def main(opts: argparse.ArgumentParser) -> None:
         no_test=opts.mqtt_no_test, sensor_name=opts.mqtt_sensor_name
     )
 
-    ph = ProjectHandler(opts.project_file, copy_options, mqtt_info, debug_dir)
+    ph = ProjectHandler(opts.project_file, copy_options, mqtt_info, debug_dir=debug_dir)
     ph.copy_project()
 
 

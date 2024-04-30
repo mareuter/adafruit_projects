@@ -2,26 +2,29 @@
 #
 # SPDX-License-Identifier: MIT
 
+import os
+
 from adafruit_lc709203f import LC709203F, PackSize
 from adafruit_max1704x import MAX17048
 
 
 class BatteryHelper:
-    def __init__(self, i2c, pack_size: str | None = None) -> None:
-        """Class constructor
+    def __init__(self, i2c) -> None:
+        """Class constructor.
+
+        Use an environment variable called BATTERY_SIZE to use the LC709203F
+        battery monitor, otherwise the MAX17048 will be used.
 
         Parameters
         ----------
         i2c : _type_
             Instance of the board I2C system
-        pack_size : str | None, optional
-            Battery pack size for estimation, by default None
         """
-        self.lc_monitor = False
-        if pack_size is not None:
+        self.pack_size = os.getenv("BATTERY_SIZE")
+        if self.pack_size is not None:
             self.lc_monitor = True
             self.monitor = LC709203F(i2c)
-            self.monitor.pack_size = getattr(PackSize, pack_size)
+            self.monitor.pack_size = getattr(PackSize, self.pack_size)
         else:
             self.monitor = MAX17048(i2c)
 
@@ -44,7 +47,7 @@ class BatteryHelper:
         try:
             percent = self.monitor.cell_percent
             voltage = self.monitor.cell_voltage
-            if self.lc_monitor:
+            if self.pack_size is not None:
                 temperature = self.monitor.cell_temperature
         except OSError as e:
             print(f"Battery monitor not available!: {e}")
