@@ -45,6 +45,7 @@ is_directory = [
     "adafruit_minimqtt",
     "adafruit_onewire",
     "adafruit_register",
+    "adafruit_seesaw",
     "asyncio",
 ]
 
