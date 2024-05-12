@@ -35,7 +35,7 @@ if pool is not None:
 
     ow_bus = OneWireBus(board.D5)
     ds18b20 = adafruit_ds18x20.DS18X20(ow_bus, ow_bus.scan()[0])
-    ds18b20.resolution = 9
+    ds18b20.resolution = 11
 
     thermistor = adafruit_thermistor.Thermistor(
         board.A1,
