@@ -169,14 +169,16 @@ class ProjectHandler:
         except KeyError:
             pass
 
-    def _create_settings_file(self) -> pathlib.Path:
+    def _create_settings_file(self) -> pathlib.Path | None:
         """Create settings file.
 
         Returns
         -------
-        pathlib.Path
+        pathlib.Path or None
             The temporary settings file.
         """
+        if "settings" not in self.project_info:
+            return None
         temp_file = self.top_dir / "settings_tmp.toml"
         settings_dict = {}
         for setting in self.project_info["settings"]["general"]:
@@ -266,11 +268,12 @@ class ProjectHandler:
 
         if self.copy_options.settings or self.copy_options.all:
             temp_settings_file = self._create_settings_file()
-            shutil.copy(
-                temp_settings_file,
-                self.circuitboard_location / SETTINGS_FILE,
-            )
-            temp_settings_file.unlink()
+            if temp_settings_file is not None:
+                shutil.copy(
+                    temp_settings_file,
+                    self.circuitboard_location / SETTINGS_FILE,
+                )
+                temp_settings_file.unlink()
 
         if self.copy_options.code or self.copy_options.all:
             project_dir = self.project_file.parent
@@ -282,12 +285,14 @@ class ProjectHandler:
         if self.copy_options.dependencies or self.copy_options.all:
             self._copy_file_or_directory("defaults", "adafruit")
 
-            local_imports = self.project_info["imports"]["local"]
-            for local_import in local_imports:
-                shutil.copy(
-                    self.local_modules / (local_import + MPY_EXT), self.circuitboard_lib
-                )
-                self._copy_file_or_directory(local_import, "adafruit")
+            if "local" in self.project_info["imports"]:
+                local_imports = self.project_info["imports"]["local"]
+                for local_import in local_imports:
+                    shutil.copy(
+                        self.local_modules / (local_import + MPY_EXT),
+                        self.circuitboard_lib,
+                    )
+                    self._copy_file_or_directory(local_import, "adafruit")
 
             self._copy_file_or_directory("imports", "adafruit", use_project_info=True)
 
