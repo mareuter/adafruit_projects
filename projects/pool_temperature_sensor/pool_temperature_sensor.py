@@ -53,7 +53,7 @@ if pool is not None:
 
     writer.mark_time()
 
-    _, battery_voltage, _ = battery_monitor.measure()
+    battery_percent, battery_voltage, _ = battery_monitor.measure()
     battery_temperature = thermistor.temperature
     try:
         water_temperature = ds18b20.temperature
@@ -62,12 +62,14 @@ if pool is not None:
         pass
 
     print(battery_voltage)
+    print(battery_percent)
     print(battery_temperature)
     print(thermistor.resistance)
     print(water_temperature)
 
     battery_measurements_and_tags = [os.getenv("MQTT_BATTERY_MEASUREMENT")]
     battery_fields = Fields(
+        percent=battery_percent,
         voltage=battery_voltage,
         temperature=battery_temperature,
     )
