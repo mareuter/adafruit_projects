@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2023-2024 Michael Reuter
+#
+# SPDX-License-Identifier: MIT
+
+code = "read_battery.py"
+
+[settings]
+general = [
+    "wifi",
+    "mqtt"
+]
+local = "settings.toml"
+
+[imports]
+local = [
+    "battery_helper",
+    "mqtt_helper",
+    "power_helper",
+    "wifi_helper"
+]
