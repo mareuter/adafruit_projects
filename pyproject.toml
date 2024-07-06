@@ -19,6 +19,7 @@ classifiers = [
 dependencies = [
     "adafruit-blinka>=8,<9",
     "adafruit-blinka-displayio",
+    "adafruit-circuitpython-adafruitio",
     "adafruit-circuitpython-bitmap-font",
     "adafruit-circuitpython-busdevice",
     "adafruit-circuitpython-datetime",
