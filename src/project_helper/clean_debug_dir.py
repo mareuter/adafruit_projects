@@ -15,7 +15,7 @@ def main(opts: argparse.ArgumentParser) -> None:
 
 
 def runner() -> None:
-    parser = make_parser()
+    parser = make_parser(use_option=False)
 
     args = parser.parse_args()
 

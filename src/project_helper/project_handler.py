@@ -29,6 +29,7 @@ class MqttInformation:
 
     no_test: bool
     sensor_name: str | None
+    adafruitio_group: str | None
 
 
 @dataclasses.dataclass
@@ -181,7 +182,10 @@ class ProjectHandler:
             return None
         temp_file = self.top_dir / "settings_tmp.toml"
         settings_dict = {}
+        use_aio = False
         for setting in self.project_info["settings"]["general"]:
+            if setting == "aio":
+                use_aio = True
             sfile_name = self.top_dir / f"settings_{setting}.toml"
             with sfile_name.open("rb") as sifile:
                 sdict = tomllib.load(sifile)
@@ -194,6 +198,12 @@ class ProjectHandler:
             with local_settings.open("rb") as slifile:
                 ldict = tomllib.load(slifile)
                 settings_dict.update(ldict)
+
+        if use_aio:
+            if self.mqtt_info.adafruitio_group is not None:
+                settings_dict["ADAFRUIT_AIO_GROUP"] = self.mqtt_info.adafruitio_group
+            else:
+                raise RuntimeError("Adafruit IO requested, but group name not given.")
 
         if self.mqtt_info.sensor_name is not None:
             settings_dict["MQTT_SENSOR_NAME"] = self.mqtt_info.sensor_name
