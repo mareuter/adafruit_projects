@@ -261,6 +261,24 @@ class ProjectHandler:
             sfile.write(content)
         return fq_save
 
+    def clean_circuitpython_board(self) -> None:
+        """Clean the currently mounted CircuitPython board."""
+        font_dir = self.circuitboard_location / "fonts"
+        shutil.rmtree(font_dir, ignore_errors=True)
+
+        settings_file = self.circuitboard_location / SETTINGS_FILE
+        settings_file.unlink()
+        settings_file.touch()
+
+        shutil.rmtree(self.circuitboard_lib, ignore_errors=True)
+        self.circuitboard_lib.mkdir(0o755, exist_ok=True)
+
+        code_file = self.circuitboard_location / CODE_FILE
+        code_file.unlink()
+
+        with code_file.open("w") as cofile:
+            cofile.write('print("Hello World!")' + os.linesep)
+
     def clean_debug_dir(self) -> None:
         """Clean the debug directory for project testing."""
         shutil.rmtree(self.circuitboard_location, ignore_errors=True)

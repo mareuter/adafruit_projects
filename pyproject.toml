@@ -40,6 +40,7 @@ dependencies = [
 ]
 
 [project.scripts]
+clean_circuitpython_board = "project_helper.clean_circuitpython_board:runner"
 clean_debug_dir = "project_helper.clean_debug_dir:runner"
 convert_font = "project_helper.convert_font:runner"
 copy_project = "project_helper.copy_project:runner"
