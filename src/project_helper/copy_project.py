@@ -24,7 +24,9 @@ def main(opts: argparse.ArgumentParser) -> None:
     )
 
     mqtt_info = MqttInformation(
-        no_test=opts.mqtt_no_test, sensor_name=opts.mqtt_sensor_name
+        no_test=opts.mqtt_no_test,
+        sensor_name=opts.mqtt_sensor_name,
+        adafruitio_group=opts.adafruitio_group,
     )
 
     ph = ProjectHandler(opts.project_file, copy_options, mqtt_info, debug_dir=debug_dir)
@@ -54,6 +56,8 @@ def runner() -> None:
     )
 
     parser.add_argument("--mqtt-sensor-name", help="Set a MQTT sensor name.")
+
+    parser.add_argument("--adafruitio-group", help="Set the Adafruit IO group feed.")
 
     args = parser.parse_args()
 
