@@ -2,6 +2,13 @@
 #
 # SPDX-License-Identifier: MIT
 
+[aio_helper]
+adafruit = [
+    "adafruit_connection_manager",
+    "adafruit_io",
+    "adafruit_minimqtt"
+]
+
 [battery_helper]
 adafruit = [
     "adafruit_lc709203f",
@@ -29,7 +36,7 @@ adafruit = [
     "adafruit_connection_manager"
 ]
 
-[adafuit_io]
+[adafruit_io]
 adafruit = [
     "adafruit_connection_manager",
     "adafruit_minimqtt"

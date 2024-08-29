@@ -33,19 +33,26 @@ if pool is not None:
     temperature_sensor = adafruit_sht4x.SHT4x(i2c)
 
     writer = AioHelper(pool)
+    if writer.is_connected:
+        temperature, relative_humidity = temperature_sensor.measurements
 
-    temperature, relative_humidity = temperature_sensor.measurements
+        writer.publish(f"{GROUP_FEED}.temperature", (temperature * 1.8) + 32)
+        writer.publish(f"{GROUP_FEED}.relative-humidity", relative_humidity)
 
-    writer.publish(f"{GROUP_FEED}.temperature", (temperature * 1.8) + 32)
-    writer.publish(f"{GROUP_FEED}.relative-humidity", relative_humidity)
+        time.sleep(2)
 
-    time.sleep(2)
+        (
+            battery_percent,
+            battery_voltage,
+            battery_temperature,
+        ) = battery_monitor.measure()
 
-    battery_percent, battery_voltage, battery_temperature = battery_monitor.measure()
+        writer.publish(f"{GROUP_FEED}.battery-percent", battery_percent)
+        writer.publish(f"{GROUP_FEED}.battery-voltage", battery_voltage)
+        writer.publish(f"{GROUP_FEED}.battery-temperature", battery_temperature)
 
-    writer.publish(f"{GROUP_FEED}.battery-percent", battery_percent)
-    writer.publish(f"{GROUP_FEED}.battery-voltage", battery_voltage)
-    writer.publish(f"{GROUP_FEED}.battery-temperature", battery_temperature)
+        # Delay to ensure last value gets published
+        time.sleep(1)
 
     # power_helper.i2c_power(False)
 

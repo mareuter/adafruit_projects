@@ -7,6 +7,7 @@ import adafruit_minimqtt.adafruit_minimqtt as MQTT
 from adafruit_io.adafruit_io_errors import AdafruitIO_MQTTError
 import os
 import socketpool
+import ssl
 import wifi
 
 __all__ = ["AioHelper"]
@@ -63,7 +64,7 @@ class AioHelper:
             username=os.getenv("ADAFRUIT_AIO_USERNAME"),
             password=os.getenv("ADAFRUIT_AIO_KEY"),
             socket_pool=pool,
-            is_ssl=True,
+            ssl_context=ssl.create_default_context(),
         )
 
         self.client = IO_MQTT(temp_client)
@@ -88,6 +89,17 @@ class AioHelper:
             print("Connection failed: \n", e)
             self.client = None
 
+    @property
+    def is_connected(self):
+        """Flag to see if writer is connected.
+
+        Returns
+        -------
+        is_connected : bool
+            True if the client is not None, False otherwise.
+        """
+        return self.client is not None
+
     def publish(self, feed_name: str, value: int | float | str) -> None:
         """Publish a value to the given feed.
 
@@ -98,6 +110,9 @@ class AioHelper:
         value : int | float | str
             Value to publish to feed
         """
+        if value is None:
+            return
+        print(feed_name, value)
         try:
             self.client.publish(feed_name, value)
         except Exception as e:
