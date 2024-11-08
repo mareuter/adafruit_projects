@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2023-2024 Michael Reuter
+#
+# SPDX-License-Identifier: MIT
+
+code = "light_sensor_aio.py"
+
+[settings]
+general = [
+    "aio",
+    "wifi",
+]
+
+[imports]
+local = [
+    "aio_helper",
+    "battery_helper",
+    "power_helper",
+    "wifi_helper",
+    "adafruit_veml7700"
+]
