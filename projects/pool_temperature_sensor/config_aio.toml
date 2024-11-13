@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2023-2024 Michael Reuter
+#
+# SPDX-License-Identifier: MIT
+
+code = "pool_temperature_sensor.py"
+
+[settings]
+general = [
+    "aio",
+    "wifi",
+]
+
+[imports]
+local = [
+    "aio_helper",
+    "battery_helper",
+    "power_helper",
+    "wifi_helper"
+]
+adafruit = [
+    "adafruit_onewire",
+    "adafruit_ds18x20",
+    "adafruit_thermistor"
+]
