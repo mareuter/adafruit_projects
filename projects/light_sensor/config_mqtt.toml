@@ -6,14 +6,14 @@ code = "light_sensor.py"
 
 [settings]
 general = [
-    "aio",
-    "wifi"
+    "wifi",
+    "mqtt"
 ]
 
 [imports]
 local = [
-    "aio_helper",
     "battery_helper",
+    "mqtt_helper",
     "wifi_helper",
     "adafruit_veml7700"
 ]
