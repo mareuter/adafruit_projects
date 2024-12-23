@@ -6,7 +6,8 @@
 adafruit = [
     "adafruit_connection_manager",
     "adafruit_io",
-    "adafruit_minimqtt"
+    "adafruit_minimqtt",
+    "adafruit_ticks"
 ]
 
 [battery_helper]
