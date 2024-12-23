@@ -2,18 +2,19 @@
 #
 # SPDX-License-Identifier: MIT
 
-code = "light_sensor.py"
+code = "light_sensor_aio.py"
 
 [settings]
 general = [
     "aio",
-    "wifi"
+    "wifi",
 ]
 
 [imports]
 local = [
     "aio_helper",
     "battery_helper",
+    "power_helper",
     "wifi_helper",
     "adafruit_veml7700"
 ]

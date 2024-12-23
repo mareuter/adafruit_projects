@@ -2,18 +2,23 @@
 #
 # SPDX-License-Identifier: MIT
 
-code = "light_sensor.py"
+code = "pool_temperature_sensor.py"
 
 [settings]
 general = [
     "aio",
-    "wifi"
+    "wifi",
 ]
 
 [imports]
 local = [
     "aio_helper",
     "battery_helper",
-    "wifi_helper",
-    "adafruit_veml7700"
+    "power_helper",
+    "wifi_helper"
+]
+adafruit = [
+    "adafruit_onewire",
+    "adafruit_ds18x20",
+    "adafruit_thermistor"
 ]
