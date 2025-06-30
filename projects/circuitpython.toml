@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024 Michael Reuter
+# SPDX-FileCopyrightText: 2024-2025 Michael Reuter
 #
 # SPDX-License-Identifier: MIT
 
@@ -6,6 +6,7 @@ storage_url = "https://adafruit-circuit-python.s3.amazonaws.com"
 locale = "en_US"
 boards = [
     "adafruit_feather_esp32s2_reverse_tft",
+    "adafruit_feather_esp32s2",
     "adafruit_feather_esp32s3_4mbflash_2mbpsram",
     "adafruit_kb2040"
 ]
