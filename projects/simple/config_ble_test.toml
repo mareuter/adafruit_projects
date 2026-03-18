@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2023-2026 Michael Reuter
+#
+# SPDX-License-Identifier: MIT
+
+code = "test_ble.py"
+
+[settings]
+general = [
+]
+
+[imports]
+local = [
+]
+adafruit = [
+    "adafruit_ble_radio"
+]

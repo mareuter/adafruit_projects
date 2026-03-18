@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2023-2025 Michael Reuter
+#
+# SPDX-License-Identifier: MIT
+
+code = "temperature_sensor_ble_aio.py"
+
+[settings]
+general = [
+    "aio",
+]
+
+[imports]
+local = [
+    "aio_helper",
+    "battery_helper",
+    "power_helper",
+]
+adafruit = [
+    "adafruit_sht4x",
+    "adafruit_ble"
+]

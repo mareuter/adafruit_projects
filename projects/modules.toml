@@ -51,7 +51,7 @@ adafruit = [
 
 [adafruit]
 module_location = "~/code/adafruit"
-bundle = "adafruit-circuitpython-bundle-9.x-mpy"
+bundle = "adafruit-circuitpython-bundle-10.x-mpy"
 is_directory = [
     "adafruit_io",
     "adafruit_bitmap_font",
@@ -66,4 +66,4 @@ is_directory = [
 
 [circuitpython]
 module_location = "~/code/adafruit"
-bundle = "circuitpython-community-bundle-9.x-mpy"
+bundle = "circuitpython-community-bundle-10.x-mpy"
