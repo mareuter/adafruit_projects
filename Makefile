@@ -1,8 +1,8 @@
-# SPDX-FileCopyrightText: 2024 Michael Reuter
+# SPDX-FileCopyrightText: 2024-2026 Michael Reuter
 #
 # SPDX-License-Identifier: MIT
 
-.PHONY: module cleam
+.PHONY: module clean
 
 module:
 	$(MAKE) -C modules all
